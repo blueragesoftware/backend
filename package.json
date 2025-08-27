@@ -9,9 +9,10 @@
   "keywords": [],
   "author": "Ertem Biyik",
   "license": "ISC",
-  "packageManager": "pnpm@10.8.1",
+  "packageManager": "pnpm@10.15.0",
   "dependencies": {
     "agents": "^0.0.113",
-    "convex": "^1.25.4"
+    "convex": "^1.25.4",
+    "convex-helpers": "^0.1.104"
   }
 }
