@@ -7,9 +7,12 @@ export const agent = v.object({
     description: v.string(),
     iconUrl: v.string(),
     goal: v.string(),
-    tools: v.array(v.string()),
-    steps: v.array(v.string()),
-    model: v.string()
+    tools: v.array(v.id("tools")),
+    steps: v.array(v.object({
+        id: v.string(),
+        value: v.string()
+    })),
+    modelId: v.id("models")
 });
 
 export const task = v.object({
@@ -19,9 +22,23 @@ export const task = v.object({
     updatedAt: v.number()
 });
 
+export const model = v.object({
+    name: v.string(),
+    provider: v.union(v.literal("openrouter")),
+    model: v.string()
+});
+
+export const tool = v.object({
+    name: v.string()
+});
+
 export default defineSchema({
     agents: defineTable(agent)
         .index("by_name", ["name"]),
     tasks: defineTable(task)
-        .index("by_agent", ["agentId"])
+        .index("by_agent", ["agentId"]),
+    models: defineTable(model)
+        .index("by_name", ["name"]),
+    tools: defineTable(tool)
+        .index("by_name", ["name"])
 });
