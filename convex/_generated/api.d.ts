@@ -14,12 +14,11 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as agents from "../agents.js";
-import type * as domains_agents from "../domains/agents.js";
-import type * as domains_models from "../domains/models.js";
-import type * as domains_tools from "../domains/tools.js";
+import type * as http from "../http.js";
 import type * as models from "../models.js";
 import type * as tasks from "../tasks.js";
 import type * as tools from "../tools.js";
+import type * as users from "../users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -31,12 +30,11 @@ import type * as tools from "../tools.js";
  */
 declare const fullApi: ApiFromModules<{
   agents: typeof agents;
-  "domains/agents": typeof domains_agents;
-  "domains/models": typeof domains_models;
-  "domains/tools": typeof domains_tools;
+  http: typeof http;
   models: typeof models;
   tasks: typeof tasks;
   tools: typeof tools;
+  users: typeof users;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

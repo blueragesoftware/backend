@@ -40,5 +40,9 @@ export default defineSchema({
     models: defineTable(model)
         .index("by_name", ["name"]),
     tools: defineTable(tool)
-        .index("by_name", ["name"])
+        .index("by_name", ["name"]),
+    users: defineTable({
+        name: v.string(),
+        externalId: v.string(),
+    }).index("byExternalId", ["externalId"]),
 });

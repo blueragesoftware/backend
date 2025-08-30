@@ -1,16 +1,17 @@
 import { internal } from "./_generated/api";
-import { internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { DatabaseReader, internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { agentFetch } from "agents/client";
-import * as Models from "./domains/models";
-import * as Agents from "./domains/agents";
-import * as Tools from "./domains/tools";
+import { getModelById, getDefaultModel } from "./models"
+import { getToolsByIds} from "./tools";
+import { Doc, Id } from "./_generated/dataModel";
 
+export type Agent = Doc<"agents">;
 
 export const getById = query({
     args: { id: v.id("agents") },
     handler: async (ctx, args) => {
-        return await Agents.getById(ctx.db, args.id);
+        return await getAgentById(ctx.db, args.id);
     },
 });
 
@@ -28,7 +29,7 @@ export const getAll = query({
 export const create = mutation({
     handler: async (ctx) => {
         try {
-            const defaultModel = await Models.getDefault(ctx.db);
+            const defaultModel = await getDefaultModel(ctx.db);
 
             if (!defaultModel) {
                 throw new ConvexError(`Default model is not found`);
@@ -45,7 +46,7 @@ export const create = mutation({
                     modelId: defaultModel._id
                 });
 
-            return await Agents.getById(ctx.db, id);
+            return await getAgentById(ctx.db, id);
         } catch (error) {
             console.error(error);
             throw error;
@@ -68,13 +69,13 @@ export const update = mutation({
         modelId: v.optional(v.id("models"))
     },
     handler: async (ctx, args) => {
-        const existing = await Agents.getById(ctx.db, args.id);
+        const existing = await getAgentById(ctx.db, args.id);
 
         if (!existing) {
             throw new ConvexError("Agent not found");
         }
 
-        const updates: Partial<Agents.Agent> = {};
+        const updates: Partial<Agent> = {};
 
         if (args.name !== undefined) updates.name = args.name;
         if (args.description !== undefined) updates.description = args.description;
@@ -99,19 +100,19 @@ export const remove = mutation({
 export const getByIdWithModelAndTools = internalQuery({
     args: { id: v.id("agents") },
     handler: async (ctx, args) => {
-        const agent = await Agents.getById(ctx.db, args.id);
+        const agent = await getAgentById(ctx.db, args.id);
 
         if (!agent) {
             return null;
         }
 
-        const model = await Models.getById(ctx.db, agent.modelId)
+        const model = await getModelById(ctx.db, agent.modelId)
 
         if (!model) {
             return null;
         }
 
-        const tools = await Tools.getByIds(ctx.db, agent.tools);
+        const tools = await getToolsByIds(ctx.db, agent.tools);
 
         return {
             agent: agent,
@@ -205,3 +206,10 @@ export const updateTask = internalMutation({
             });
     }
 });
+
+async function getAgentById(
+    db: DatabaseReader,
+    id: Id<"agents">
+): Promise<Agent | null> {
+    return await db.get(id);
+}
