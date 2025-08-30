@@ -3,24 +3,29 @@ import { DatabaseReader, internalAction, internalMutation, internalQuery, mutati
 import { v, ConvexError } from "convex/values";
 import { agentFetch } from "agents/client";
 import { getModelById, getDefaultModel } from "./models"
-import { getToolsByIds} from "./tools";
+import { getToolsByIds } from "./tools";
 import { Doc, Id } from "./_generated/dataModel";
+import { getCurrentUserOrThrow } from "./users"
 
 export type Agent = Doc<"agents">;
 
 export const getById = query({
     args: { id: v.id("agents") },
     handler: async (ctx, args) => {
-        return await getAgentById(ctx.db, args.id);
+        const user = await getCurrentUserOrThrow(ctx);
+
+        return await getAgentById(ctx.db, user._id, args.id);
     },
 });
 
 export const getAll = query({
     args: {},
     handler: async (ctx) => {
+        const user = await getCurrentUserOrThrow(ctx);
+
         return await ctx.db
             .query("agents")
-            .withIndex("by_name")
+            .withIndex("by_userId", (q) => q.eq("userId", user._id))
             .order("asc")
             .collect();
     },
@@ -29,10 +34,12 @@ export const getAll = query({
 export const create = mutation({
     handler: async (ctx) => {
         try {
+            const user = await getCurrentUserOrThrow(ctx);
+
             const defaultModel = await getDefaultModel(ctx.db);
 
             if (!defaultModel) {
-                throw new ConvexError(`Default model is not found`);
+                throw new ConvexError(`Default model not found`);
             }
 
             const id = await ctx.db
@@ -43,10 +50,11 @@ export const create = mutation({
                     goal: "",
                     tools: [],
                     steps: [],
-                    modelId: defaultModel._id
+                    modelId: defaultModel._id,
+                    userId: user._id
                 });
 
-            return await getAgentById(ctx.db, id);
+            return await getAgentById(ctx.db, user._id, id);
         } catch (error) {
             console.error(error);
             throw error;
@@ -69,9 +77,11 @@ export const update = mutation({
         modelId: v.optional(v.id("models"))
     },
     handler: async (ctx, args) => {
-        const existing = await getAgentById(ctx.db, args.id);
+        const user = await getCurrentUserOrThrow(ctx);
 
-        if (!existing) {
+        const existing = await getAgentById(ctx.db, user._id, args.id);
+
+        if (existing === null) {
             throw new ConvexError("Agent not found");
         }
 
@@ -92,15 +102,25 @@ export const update = mutation({
 export const remove = mutation({
     args: { id: v.id("agents") },
     handler: async (ctx, args) => {
-        return await ctx.db
-            .delete(args.id)
+        const user = await getCurrentUserOrThrow(ctx);
+
+        const agent = await getAgentById(ctx.db, user._id, args.id);
+
+        if (agent?.userId === user._id) {
+            return await ctx.db
+                .delete(args.id)
+        } 
+
+        throw new ConvexError("Agent not found");
     }
 });
 
 export const getByIdWithModelAndTools = internalQuery({
     args: { id: v.id("agents") },
     handler: async (ctx, args) => {
-        const agent = await getAgentById(ctx.db, args.id);
+        const user = await getCurrentUserOrThrow(ctx);
+
+        const agent = await getAgentById(ctx.db, user._id, args.id);
 
         if (!agent) {
             return null;
@@ -126,19 +146,22 @@ export const runAgent = internalAction({
     args: { taskId: v.id("tasks"), agentId: v.id("agents"), },
     handler: async (ctx, args) => {
         try {
-            const result = await ctx.runQuery(internal.agents.getByIdWithModelAndTools, { id: args.agentId });
+            const result = await ctx.runQuery(internal.agents.getByIdWithModelAndTools, {
+                id: args.agentId
+            });
 
-            if (!result) {
+            if (result === null) {
                 throw new ConvexError("Agent not found");
             }
 
             const agent = result.agent;
             const model = result.model;
+            const tools = result.tools;
 
             const requestBody = {
                 goal: agent.goal,
                 steps: agent.steps,
-                tools: agent.tools,
+                tools: tools,
                 providerId: model.provider,
                 modelId: model.model
             }
@@ -153,7 +176,7 @@ export const runAgent = internalAction({
                     {
                         agent: "steps-following-agent",
                         name: `single-instance-${args.taskId}`,
-                        host: "https://agent-worker.bluerage-software.workers.dev"
+                        host: process.env.AGENT_WORKER_URL!
                     },
                     {
                         method: "POST",
@@ -191,25 +214,16 @@ export const runAgent = internalAction({
     }
 });
 
-export const updateTask = internalMutation({
-    args: {
-        id: v.id("tasks"),
-        state: v.union(v.literal("registered"), v.literal("running"), v.literal("error"), v.literal("done")),
-        result: v.optional(v.string()),
-    },
-    handler: async (ctx, args) => {
-        await ctx.db
-            .patch(args.id, {
-                state: args.state,
-                result: args.result,
-                updatedAt: Date.now()
-            });
-    }
-});
-
 async function getAgentById(
     db: DatabaseReader,
+    userId: Id<"users">,
     id: Id<"agents">
 ): Promise<Agent | null> {
-    return await db.get(id);
+    const agent = await db.get(id);
+
+    if (agent?.userId === userId) {
+        return agent;
+    }
+
+    return null;
 }

@@ -12,14 +12,16 @@ export const agent = v.object({
         id: v.string(),
         value: v.string()
     })),
-    modelId: v.id("models")
+    modelId: v.id("models"),
+    userId: v.id("users"),
 });
 
 export const task = v.object({
     agentId: v.id("agents"),
     state: v.union(v.literal("registered"), v.literal("running"), v.literal("error"), v.literal("done")),
     result: v.optional(v.string()),
-    updatedAt: v.number()
+    updatedAt: v.number(),
+    userId: v.id("users"),
 });
 
 export const model = v.object({
@@ -34,9 +36,11 @@ export const tool = v.object({
 
 export default defineSchema({
     agents: defineTable(agent)
-        .index("by_name", ["name"]),
+        .index("by_name", ["name"])
+        .index("by_userId", ["userId"]),
     tasks: defineTable(task)
-        .index("by_agent", ["agentId"]),
+        .index("by_agent", ["agentId"])
+        .index("by_userId", ["userId"]),
     models: defineTable(model)
         .index("by_name", ["name"]),
     tools: defineTable(tool)

@@ -1,16 +1,11 @@
-import { internalMutation, query, QueryCtx } from "./_generated/server";
+import { internalMutation, QueryCtx } from "./_generated/server";
 import { UserJSON } from "@clerk/backend";
 import { v, Validator } from "convex/values";
 
-export const current = query({
-    args: {},
-    handler: async (ctx) => {
-        return await getCurrentUser(ctx);
-    },
-});
-
 export const upsertFromClerk = internalMutation({
-    args: { data: v.any() as Validator<UserJSON> }, // no runtime validation, trust Clerk
+    args: {
+        data: v.any() as Validator<UserJSON>
+    },
     async handler(ctx, { data }) {
         const userAttributes = {
             name: `${data.first_name} ${data.last_name}`,
@@ -18,6 +13,7 @@ export const upsertFromClerk = internalMutation({
         };
 
         const user = await userByExternalId(ctx, data.id);
+
         if (user === null) {
             await ctx.db.insert("users", userAttributes);
         } else {
@@ -27,7 +23,9 @@ export const upsertFromClerk = internalMutation({
 });
 
 export const deleteFromClerk = internalMutation({
-    args: { clerkUserId: v.string() },
+    args: {
+        clerkUserId: v.string()
+    },
     async handler(ctx, { clerkUserId }) {
         const user = await userByExternalId(ctx, clerkUserId);
 
@@ -43,15 +41,21 @@ export const deleteFromClerk = internalMutation({
 
 export async function getCurrentUserOrThrow(ctx: QueryCtx) {
     const userRecord = await getCurrentUser(ctx);
-    if (!userRecord) throw new Error("Can't get current user");
+
+    if (!userRecord) {
+        throw new Error("Can't get current user");
+    }
+
     return userRecord;
 }
 
 export async function getCurrentUser(ctx: QueryCtx) {
     const identity = await ctx.auth.getUserIdentity();
+
     if (identity === null) {
         return null;
     }
+
     return await userByExternalId(ctx, identity.subject);
 }
 
