@@ -1,4 +1,4 @@
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { DatabaseReader, internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { agentFetch } from "agents/client";
@@ -115,7 +115,7 @@ export const remove = mutation({
     }
 });
 
-export const getByIdWithModelAndTools = internalQuery({
+export const getByIdWithModelAndTools = query({
     args: { id: v.id("agents") },
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
@@ -146,7 +146,7 @@ export const runAgent = internalAction({
     args: { taskId: v.id("tasks"), agentId: v.id("agents"), },
     handler: async (ctx, args) => {
         try {
-            const result = await ctx.runQuery(internal.agents.getByIdWithModelAndTools, {
+            const result = await ctx.runQuery(api.agents.getByIdWithModelAndTools, {
                 id: args.agentId
             });
 

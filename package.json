@@ -12,6 +12,7 @@
   "packageManager": "pnpm@10.15.0",
   "dependencies": {
     "@clerk/backend": "^2.10.1",
+    "@composio/core": "^0.1.48",
     "agents": "^0.0.113",
     "convex": "^1.25.4",
     "convex-helpers": "^0.1.104",

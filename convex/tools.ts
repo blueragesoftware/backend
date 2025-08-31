@@ -2,11 +2,14 @@ import { query } from "./_generated/server";
 import { v } from "convex/values";
 import { Doc, Id } from "./_generated/dataModel";
 import { DatabaseReader } from "./_generated/server";
+import { getCurrentUserOrThrow } from "./users";
 
 type Tool = Doc<"tools">;
 
 export const getAll = query({
     handler: async (ctx) => {
+        await getCurrentUserOrThrow(ctx);
+
         return await ctx.db
             .query("tools")
             .collect();
@@ -16,6 +19,8 @@ export const getAll = query({
 export const getById = query({
     args: { id: v.id("tools") },
     handler: async (ctx, args) => {
+        await getCurrentUserOrThrow(ctx);
+        
         return await getToolById(ctx.db, args.id);
     },
 });
