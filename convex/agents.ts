@@ -1,16 +1,15 @@
-import { api, internal } from "./_generated/api";
-import { DatabaseReader, internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { DatabaseReader, mutation, query } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
-import { agentFetch } from "agents/client";
 import { getModelById, getDefaultModel } from "./models"
-import { getToolsByIds } from "./tools";
 import { Doc, Id } from "./_generated/dataModel";
 import { getCurrentUserOrThrow } from "./users"
 
 export type Agent = Doc<"agents">;
 
 export const getById = query({
-    args: { id: v.id("agents") },
+    args: {
+        id: v.id("agents")
+    },
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
 
@@ -19,7 +18,6 @@ export const getById = query({
 });
 
 export const getAll = query({
-    args: {},
     handler: async (ctx) => {
         const user = await getCurrentUserOrThrow(ctx);
 
@@ -69,7 +67,10 @@ export const update = mutation({
         description: v.optional(v.string()),
         iconUrl: v.optional(v.string()),
         goal: v.optional(v.string()),
-        tools: v.optional(v.array(v.id("tools"))),
+        tools: v.optional(v.array(v.object({
+            slug: v.string(),
+            name: v.string()
+        }))),
         steps: v.optional(v.array(v.object({
             id: v.string(),
             value: v.string()
@@ -99,24 +100,30 @@ export const update = mutation({
     }
 });
 
-export const remove = mutation({
-    args: { id: v.id("agents") },
+export const removeByIds = mutation({
+    args: {
+        id: v.array(v.id("agents"))
+    },
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
 
-        const agent = await getAgentById(ctx.db, user._id, args.id);
+        for (const id of args.id) {
+            const agent = await getAgentById(ctx.db, user._id, id);
 
-        if (agent?.userId === user._id) {
-            return await ctx.db
-                .delete(args.id)
-        } 
-
-        throw new ConvexError("Agent not found");
+            if (agent?.userId === user._id) {
+                return await ctx.db
+                    .delete(id)
+            } else {
+                throw new ConvexError("Agent not found");
+            }
+        }
     }
 });
 
-export const getByIdWithModelAndTools = query({
-    args: { id: v.id("agents") },
+export const getByIdWithModel = query({
+    args: {
+        id: v.id("agents")
+    },
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
 
@@ -132,84 +139,9 @@ export const getByIdWithModelAndTools = query({
             return null;
         }
 
-        const tools = await getToolsByIds(ctx.db, agent.tools);
-
         return {
             agent: agent,
-            model: model,
-            tools: tools
-        }
-    }
-});
-
-export const runAgent = internalAction({
-    args: { taskId: v.id("tasks"), agentId: v.id("agents"), },
-    handler: async (ctx, args) => {
-        try {
-            const result = await ctx.runQuery(api.agents.getByIdWithModelAndTools, {
-                id: args.agentId
-            });
-
-            if (result === null) {
-                throw new ConvexError("Agent not found");
-            }
-
-            const agent = result.agent;
-            const model = result.model;
-            const tools = result.tools;
-
-            const requestBody = {
-                goal: agent.goal,
-                steps: agent.steps,
-                tools: tools,
-                providerId: model.provider,
-                modelId: model.model
-            }
-
-            await ctx.runMutation(internal.tasks.updateTask, {
-                id: args.taskId,
-                state: "running"
-            })
-
-            try {
-                const result = await agentFetch(
-                    {
-                        agent: "steps-following-agent",
-                        name: `single-instance-${args.taskId}`,
-                        host: process.env.AGENT_WORKER_URL!
-                    },
-                    {
-                        method: "POST",
-                        body: JSON.stringify(requestBody)
-                    }
-                );
-
-                const json = await result.json();
-
-                if (result.ok) {
-                    await ctx.runMutation(internal.tasks.updateTask, {
-                        id: args.taskId,
-                        state: "error",
-                        result: json.data ?? "Successful execution with no data returned"
-                    })
-                } else {
-                    console.log(`Agent execution failed: ${json.error}`)
-
-                    throw new ConvexError("Agent execution failed");
-                }
-            } catch (error) {
-                console.log(`Agent execution failed: ${error}`)
-
-                throw new ConvexError("Error executing agent");
-            }
-        } catch (error) {
-            await ctx.runMutation(internal.tasks.updateTask, {
-                id: args.taskId,
-                state: "error",
-                result: JSON.stringify(error)
-            })
-
-            throw error;
+            model: model
         }
     }
 });

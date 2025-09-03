@@ -1,10 +1,10 @@
-import { internalQuery, query } from "./_generated/server";
+import { query } from "./_generated/server";
 import { v } from "convex/values";
 import { Doc, Id } from "./_generated/dataModel";
 import { DatabaseReader } from "./_generated/server";
 import { getCurrentUserOrThrow } from "./users";
 
-const DEFAULT_MODEL_ID = "jh7f257x5wp924q3t2cczzgg8d7pg14c" as Id<"models">;
+const DEFAULT_MODEL_ID = process.env.DEFAULT_MODEL_ID as Id<"models">;
 
 type Model = Doc<"models">;
 
@@ -26,6 +26,13 @@ export const getById = query({
         return await getModelById(ctx.db, args.id);
     },
 });
+
+export async function decryptCustomKey(
+    key: string | null
+): Promise<string | null> {
+    // logic to decrypt
+    return null;
+}
 
 export async function getModelById(
     db: DatabaseReader,

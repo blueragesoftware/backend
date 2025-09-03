@@ -10,10 +10,12 @@ http.route({
     path: "/clerk-users-webhook",
     method: "POST",
     handler: httpAction(async (ctx, request) => {
-        const event = await validateRequest(request);
+        const event = await validateRequest(request, process.env.CLERK_WEBHOOK_SECRET!);
+
         if (!event) {
             return new Response("Error occured", { status: 400 });
         }
+
         switch (event.type) {
             case "user.created": // intentional fallthrough
             case "user.updated":
@@ -35,14 +37,33 @@ http.route({
     }),
 });
 
-async function validateRequest(req: Request): Promise<WebhookEvent | null> {
+http.route({
+    path: "/composio-webhook",
+    method: "POST",
+    handler: httpAction(async (_ctx, request) => {
+        const event = await validateRequest(request, process.env.COMPOSIO_WEBHOOK_SECRET!);
+
+        if (!event) {
+            return new Response("Error occured", { status: 400 });
+        }
+
+        console.log(`Composion webhook: ${request.body}`);
+
+        return new Response(null, { status: 200 });
+    }),
+});
+
+async function validateRequest(req: Request, secret: string): Promise<WebhookEvent | null> {
     const payloadString = await req.text();
+
     const svixHeaders = {
         "svix-id": req.headers.get("svix-id")!,
         "svix-timestamp": req.headers.get("svix-timestamp")!,
         "svix-signature": req.headers.get("svix-signature")!,
     };
-    const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET!);
+
+    const wh = new Webhook(secret);
+
     try {
         return wh.verify(payloadString, svixHeaders) as unknown as WebhookEvent;
     } catch (error) {

@@ -1,13 +1,22 @@
-
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+
+export const model = v.object({
+    name: v.string(),
+    provider: v.union(v.literal("openrouter"), v.literal("openai"), v.literal("anthropic")),
+    modelId: v.string(),
+    encryptedCustomApiKey: v.optional(v.string())
+});
 
 export const agent = v.object({
     name: v.string(),
     description: v.string(),
     iconUrl: v.string(),
     goal: v.string(),
-    tools: v.array(v.id("tools")),
+    tools: v.array(v.object({
+        slug: v.string(),
+        name: v.string()
+    })),
     steps: v.array(v.object({
         id: v.string(),
         value: v.string()
@@ -18,20 +27,10 @@ export const agent = v.object({
 
 export const task = v.object({
     agentId: v.id("agents"),
-    state: v.union(v.literal("registered"), v.literal("running"), v.literal("error"), v.literal("done")),
+    state: v.union(v.literal("registered"), v.literal("running"), v.literal("error"), v.literal("success")),
     result: v.optional(v.string()),
     updatedAt: v.number(),
     userId: v.id("users"),
-});
-
-export const model = v.object({
-    name: v.string(),
-    provider: v.union(v.literal("openrouter")),
-    model: v.string()
-});
-
-export const tool = v.object({
-    name: v.string()
 });
 
 export default defineSchema({
@@ -43,10 +42,12 @@ export default defineSchema({
         .index("by_userId", ["userId"]),
     models: defineTable(model)
         .index("by_name", ["name"]),
-    tools: defineTable(tool)
-        .index("by_name", ["name"]),
     users: defineTable({
         name: v.string(),
         externalId: v.string(),
     }).index("byExternalId", ["externalId"]),
+    customModels: defineTable({
+        userId: v.id("users"),
+        model: model
+    }).index("by_userId", ["userId"])
 });
