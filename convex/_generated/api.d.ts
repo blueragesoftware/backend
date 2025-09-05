@@ -15,9 +15,9 @@ import type {
 } from "convex/server";
 import type * as agents from "../agents.js";
 import type * as executeAgent from "../executeAgent.js";
+import type * as executionTasks from "../executionTasks.js";
 import type * as http from "../http.js";
 import type * as models from "../models.js";
-import type * as tasks from "../tasks.js";
 import type * as tools from "../tools.js";
 import type * as users from "../users.js";
 
@@ -32,9 +32,9 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   agents: typeof agents;
   executeAgent: typeof executeAgent;
+  executionTasks: typeof executionTasks;
   http: typeof http;
   models: typeof models;
-  tasks: typeof tasks;
   tools: typeof tools;
   users: typeof users;
 }>;

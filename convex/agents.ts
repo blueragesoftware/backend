@@ -127,30 +127,15 @@ export const getByIdWithModel = query({
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
 
-        const agent = await getAgentById(ctx.db, user._id, args.id);
-
-        if (!agent) {
-            return null;
-        }
-
-        const model = await getModelById(ctx.db, agent.modelId)
-
-        if (!model) {
-            return null;
-        }
-
-        return {
-            agent: agent,
-            model: model
-        }
+        return await getAgentByIdWithModel(ctx.db, user._id, args.id);
     }
 });
 
-async function getAgentById(
+export async function getAgentById(
     db: DatabaseReader,
     userId: Id<"users">,
     id: Id<"agents">
-): Promise<Agent | null> {
+) {
     const agent = await db.get(id);
 
     if (agent?.userId === userId) {
@@ -158,4 +143,27 @@ async function getAgentById(
     }
 
     return null;
+}
+
+export async function getAgentByIdWithModel(
+    db: DatabaseReader,
+    userId: Id<"users">,
+    id: Id<"agents">
+) {
+    const agent = await getAgentById(db, userId, id);
+
+    if (!agent) {
+        return null;
+    }
+
+    const model = await getModelById(db, agent.modelId)
+
+    if (!model) {
+        return null;
+    }
+
+    return {
+        agent,
+        model
+    }
 }

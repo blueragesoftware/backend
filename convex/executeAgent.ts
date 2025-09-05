@@ -7,24 +7,24 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { aisdk, AiSdkModel } from '@openai/agents-extensions';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { action } from './_generated/server';
+import { internalAction } from './_generated/server';
 import { ConvexError, v } from "convex/values";
 import { api, internal } from './_generated/api';
 import { decryptCustomKey } from "./models";
+import { getToolsBySlugsForUserWithId } from "./tools"
 
-export const executeWithId = action({
+export const executeWithId = internalAction({
     args: {
-        // taskId: v.id("tasks"),
-        agentId: v.id("agents")
+        taskId: v.id("executionTasks"),
     },
     handler: async (ctx, args) => {
         try {
-            const getByIdWithModelResponse = await ctx.runQuery(api.agents.getByIdWithModel, {
-                id: args.agentId
+            const task = await ctx.runQuery(api.executionTasks.getById, {
+                id: args.taskId
             });
 
-            if (getByIdWithModelResponse === null) {
-                throw new ConvexError("Agent not found");
+            if (task === null) {
+                throw new ConvexError("Task not found");
             }
 
             const composio = new Composio({
@@ -33,15 +33,11 @@ export const executeWithId = action({
                 })
             });
 
-            const requestedToolSlugs = getByIdWithModelResponse.agent.tools.map(tool => tool.slug);
+            const requestedToolSlugs = task.agent.tools.map(tool => tool.slug);
 
-            const userAvailableRequestedTools = await ctx.runAction(api.tools.getToolsBySlugsForUser, {
-                slugs: requestedToolSlugs
-            });
+            const userAvailableRequestedTools = await getToolsBySlugsForUserWithId(task.agent.userId, requestedToolSlugs);
 
-            const user = await ctx.runQuery(internal.users.getCurrentOrThrow);
-
-            const tools = await composio.tools.get(user._id, {
+            const tools = await composio.tools.get(task.agent.userId, {
                 toolkits: requestedToolSlugs
             });
 
@@ -52,75 +48,66 @@ export const executeWithId = action({
             const missingTools = [...requestedSet].filter(slug => !availableSet.has(slug));
 
             if (missingTools.length > 0) {
-                throw new ConvexError(`Missing tools: ${missingTools.join(', ')}`);
+                throw new ConvexError(`Tools missing authentication: ${missingTools.join(', ')}`);
             }
 
             let model: AiSdkModel;
 
-            switch (getByIdWithModelResponse.model.provider) {
+            switch (task.model.provider) {
                 case "openrouter":
-                    const decryptedOpenRouterKey = await decryptCustomKey(getByIdWithModelResponse.model.encryptedCustomApiKey || null);
+                    const decryptedOpenRouterKey = await decryptCustomKey(task.model.encryptedCustomApiKey || null);
                     const openrouter = createOpenRouter(decryptedOpenRouterKey ? { apiKey: decryptedOpenRouterKey } : {});
 
-                    model = aisdk(openrouter.chat(getByIdWithModelResponse.model.modelId));
+                    model = aisdk(openrouter.chat(task.model.modelId));
                     break;
                 case "openai":
-                    const decryptedOpenAIKey = await decryptCustomKey(getByIdWithModelResponse.model.encryptedCustomApiKey || null);
+                    const decryptedOpenAIKey = await decryptCustomKey(task.model.encryptedCustomApiKey || null);
                     const openai = createOpenAI(decryptedOpenAIKey ? { apiKey: decryptedOpenAIKey } : {});
 
-                    model = aisdk(openai.chat(getByIdWithModelResponse.model.modelId));
+                    model = aisdk(openai.chat(task.model.modelId));
                     break;
                 case "anthropic":
-                    const decryptedAnthropicKey = await decryptCustomKey(getByIdWithModelResponse.model.encryptedCustomApiKey || null);
+                    const decryptedAnthropicKey = await decryptCustomKey(task.model.encryptedCustomApiKey || null);
                     const anthropic = createAnthropic(decryptedAnthropicKey ? { apiKey: decryptedAnthropicKey } : {});
 
-                    model = aisdk(anthropic.chat(getByIdWithModelResponse.model.modelId));
+                    model = aisdk(anthropic.chat(task.model.modelId));
                     break;
                 default:
                     throw new ConvexError("Invalid model provider");
             }
 
-            const goal = getByIdWithModelResponse.agent.goal;
-            const toolNames = tools.map(tool => tool.name);
+            const goal = task.agent.goal;
 
-            // await ctx.runMutation(internal.tasks.updateTask, {
-            //     id: args.taskId,
-            //     state: "running"
-            // });
+            await ctx.runMutation(internal.executionTasks.updateTask, {
+                id: args.taskId,
+                state: { type: "running" }
+            });
 
             const agent = new Agent({
-                instructions: `You are an ai agent that executes user defined steps in a given order using tools provided alongside.\nYour goal is: ${goal}.\nAvailable tools: ${toolNames}.\nCurrent date is: ${new Date().toLocaleDateString()}.`,
+                instructions: `You are an ai agent that executes user defined steps in a given order using tools provided alongside.\nYour goal is: ${goal}.\nCurrent date is: ${new Date().toLocaleDateString()}.`,
                 name: "StepsFollowingAgent",
                 tools: tools,
                 model
             });
 
-            const formattedSteps = getByIdWithModelResponse.agent.steps.map((step, index) => `${index + 1}. ${step.value}`).join('\n');
+            const formattedSteps = task.agent.steps.map((step, index) => `${index + 1}. ${step.value}`).join('\n');
 
             const result = await run(
                 agent,
-                `Execute these steps: \n${formattedSteps}\nUse these tools: ${toolNames}`
+                `Execute these steps: \n${formattedSteps}`
             );
 
-            console.log("result", result.finalOutput);
-
-            return result.finalOutput;
-
-            // await ctx.runMutation(internal.tasks.updateTask, {
-            //     id: args.taskId,
-            //     state: "success",
-            //     result: result.finalOutput
-            // });
+            await ctx.runMutation(internal.executionTasks.updateTask, {
+                id: args.taskId,
+                state: { type: "success", result: result.finalOutput ?? "No result" }
+            });
         } catch (error) {
             console.error("Error executing agent", error);
 
-            // await ctx.runMutation(internal.tasks.updateTask, {
-            //     id: args.taskId,
-            //     state: "error",
-            //     result: (error as Error).message
-            // })
-
-            throw error;
+            await ctx.runMutation(internal.executionTasks.updateTask, {
+                id: args.taskId,
+                state: { type: "error", error: (error as Error).message }
+            });
         }
     }
 });

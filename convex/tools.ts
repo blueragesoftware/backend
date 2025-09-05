@@ -4,6 +4,7 @@ import { Composio } from '@composio/core';
 import { internal } from "./_generated/api";
 import { action } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
 
 const SUPPORTED_TOOLKITS_WITH_AUTH_CONFIG_ID: Record<string, string> = {
     'GMAIL': process.env.COMPOSIO_GMAIL_AUTH_CONFIG_ID!,
@@ -12,7 +13,7 @@ const SUPPORTED_TOOLKITS_WITH_AUTH_CONFIG_ID: Record<string, string> = {
     'NOTION': process.env.COMPOSIO_NOTION_AUTH_CONFIG_ID!,
 };
 
-export const getAllTools = action({
+export const getAll = action({
     handler: async (ctx) => {
         const user = await ctx.runQuery(internal.users.getCurrentOrThrow);
 
@@ -45,44 +46,18 @@ export const getAllTools = action({
     }
 });
 
-export const getToolsBySlugsForUser = action({
+export const getBySlugsForUser = action({
     args: {
         slugs: v.array(v.string())
     },
     handler: async (ctx, args) => {
         const user = await ctx.runQuery(internal.users.getCurrentOrThrow);
 
-        if (args.slugs.length === 0) {
-            return [];
-        }
-
-        const supportedToolkitSlugs = args.slugs.filter(slug => SUPPORTED_TOOLKITS_WITH_AUTH_CONFIG_ID[slug.toUpperCase()] !== undefined);
-
-        const composio = new Composio();
-
-        const toolkits = await composio.connectedAccounts.list({
-            userIds: [user._id],
-            toolkitSlugs: supportedToolkitSlugs
-        });
-
-        const toolkitPromises = toolkits.items.map(async item => {
-            const toolkit = await composio.toolkits.get(item.toolkit.slug);
-
-            return {
-                authConfigId: SUPPORTED_TOOLKITS_WITH_AUTH_CONFIG_ID[toolkit.slug.toUpperCase()],
-                name: toolkit.name,
-                slug: toolkit.slug,
-                description: toolkit.meta?.description,
-                logo: toolkit.meta?.logo,
-                status: item.status.toLowerCase()
-            };
-        });
-
-        return await Promise.all(toolkitPromises);
+        return await getToolsBySlugsForUserWithId(user._id, args.slugs);
     }
 });
 
-export const connectToolWithAuthConfigId = action({
+export const connectWithAuthConfigId = action({
     args: {
         authConfigId: v.string()
     },
@@ -120,3 +95,36 @@ export const checkConnection = action({
         };
     }
 });
+
+export async function getToolsBySlugsForUserWithId(
+    userId: Id<"users">,
+    slugs: string[]
+) {
+    if (slugs.length === 0) {
+        return [];
+    }
+
+    const supportedToolkitSlugs = slugs.filter(slug => SUPPORTED_TOOLKITS_WITH_AUTH_CONFIG_ID[slug.toUpperCase()] !== undefined);
+
+    const composio = new Composio();
+
+    const toolkits = await composio.connectedAccounts.list({
+        userIds: [userId],
+        toolkitSlugs: supportedToolkitSlugs
+    });
+
+    const toolkitPromises = toolkits.items.map(async item => {
+        const toolkit = await composio.toolkits.get(item.toolkit.slug);
+
+        return {
+            authConfigId: SUPPORTED_TOOLKITS_WITH_AUTH_CONFIG_ID[toolkit.slug.toUpperCase()],
+            name: toolkit.name,
+            slug: toolkit.slug,
+            description: toolkit.meta?.description,
+            logo: toolkit.meta?.logo,
+            status: item.status.toLowerCase()
+        };
+    });
+
+    return await Promise.all(toolkitPromises);
+}

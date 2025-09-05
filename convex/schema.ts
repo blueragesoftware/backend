@@ -25,21 +25,34 @@ export const agent = v.object({
     userId: v.id("users"),
 });
 
-export const task = v.object({
+export const executionTask = v.object({
     agentId: v.id("agents"),
-    state: v.union(v.literal("registered"), v.literal("running"), v.literal("error"), v.literal("success")),
-    result: v.optional(v.string()),
+    agent: v.object({
+        ...agent.fields,
+        _id: v.id("agents"),
+        _creationTime: v.number()
+    }),
+    model: v.object({
+        ...model.fields,
+        _id: v.id("models"),
+        _creationTime: v.number()
+    }),
+    state: v.union(
+        v.object({ type: v.literal("registered") }),
+        v.object({ type: v.literal("running") }),
+        v.object({ type: v.literal("error"), error: v.string() }),
+        v.object({ type: v.literal("success"), result: v.string() })
+    ),
     updatedAt: v.number(),
-    userId: v.id("users"),
 });
 
 export default defineSchema({
     agents: defineTable(agent)
         .index("by_name", ["name"])
         .index("by_userId", ["userId"]),
-    tasks: defineTable(task)
-        .index("by_agent", ["agentId"])
-        .index("by_userId", ["userId"]),
+    executionTasks: defineTable(executionTask)
+        .index("by_agentId_and_userId", ["agentId", "agent.userId"])
+        .index("by_userId", ["agent.userId"]),
     models: defineTable(model)
         .index("by_name", ["name"]),
     users: defineTable({
