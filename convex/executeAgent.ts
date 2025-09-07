@@ -12,6 +12,9 @@ import { ConvexError, v } from "convex/values";
 import { api, internal } from './_generated/api';
 import { decryptCustomKey } from "./models";
 import { getToolsBySlugsForUserWithId } from "./tools"
+import { PostHog } from "posthog-node";
+import { withTracing } from "@posthog/ai"
+import { LanguageModel } from "ai";
 
 export const executeWithId = internalAction({
     args: {
@@ -51,38 +54,48 @@ export const executeWithId = internalAction({
                 throw new ConvexError(`Tools missing authentication: ${missingTools.join(', ')}`);
             }
 
-            let model: AiSdkModel;
+            let model: LanguageModel;
 
             switch (task.model.provider) {
                 case "openrouter":
                     const decryptedOpenRouterKey = await decryptCustomKey(task.model.encryptedCustomApiKey || null);
                     const openrouter = createOpenRouter(decryptedOpenRouterKey ? { apiKey: decryptedOpenRouterKey } : {});
 
-                    model = aisdk(openrouter.chat(task.model.modelId));
+                    model = openrouter.chat(task.model.modelId);
                     break;
                 case "openai":
                     const decryptedOpenAIKey = await decryptCustomKey(task.model.encryptedCustomApiKey || null);
                     const openai = createOpenAI(decryptedOpenAIKey ? { apiKey: decryptedOpenAIKey } : {});
 
-                    model = aisdk(openai.chat(task.model.modelId));
+                    model = openai.chat(task.model.modelId);
                     break;
                 case "anthropic":
                     const decryptedAnthropicKey = await decryptCustomKey(task.model.encryptedCustomApiKey || null);
                     const anthropic = createAnthropic(decryptedAnthropicKey ? { apiKey: decryptedAnthropicKey } : {});
 
-                    model = aisdk(anthropic.chat(task.model.modelId));
+                    model = anthropic.chat(task.model.modelId);
                     break;
                 default:
                     throw new ConvexError("Invalid model provider");
             }
+
+            const posthog = new PostHog(process.env.POSTHOG_API_KEY!, {
+                host: process.env.POSTHOG_HOST!
+            });
+
+            const modelWithTracing = withTracing(model, posthog, {
+                posthogDistinctId: task.agent.userId,
+            });
+
+            const aiSdkModel = aisdk(modelWithTracing);
 
             const goal = task.agent.goal;
 
             const agent = new Agent({
                 instructions: `You are an ai agent that executes user defined steps in a given order using tools provided alongside.\nYour goal is: ${goal}.\nCurrent date is: ${new Date().toLocaleDateString()}.`,
                 name: "StepsFollowingAgent",
-                tools: tools,
-                model
+                tools,
+                model: aiSdkModel
             });
 
             const formattedSteps = task.agent.steps.map((step, index) => `${index + 1}. ${step.value}`).join('\n');
