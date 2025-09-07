@@ -42,8 +42,8 @@ export const executeWithId = internalAction({
             });
 
             // Verify all requested tools are available
-            const requestedSet = new Set(requestedToolSlugs);
-            const availableSet = new Set(userAvailableRequestedTools.map(tool => tool.slug));
+            const requestedSet = new Set<string>(requestedToolSlugs);
+            const availableSet = new Set<string>(userAvailableRequestedTools.map(tool => tool.slug));
 
             const missingTools = [...requestedSet].filter(slug => !availableSet.has(slug));
 
@@ -78,11 +78,6 @@ export const executeWithId = internalAction({
 
             const goal = task.agent.goal;
 
-            await ctx.runMutation(internal.executionTasks.updateTask, {
-                id: args.taskId,
-                state: { type: "running" }
-            });
-
             const agent = new Agent({
                 instructions: `You are an ai agent that executes user defined steps in a given order using tools provided alongside.\nYour goal is: ${goal}.\nCurrent date is: ${new Date().toLocaleDateString()}.`,
                 name: "StepsFollowingAgent",
@@ -91,6 +86,11 @@ export const executeWithId = internalAction({
             });
 
             const formattedSteps = task.agent.steps.map((step, index) => `${index + 1}. ${step.value}`).join('\n');
+
+            await ctx.runMutation(internal.executionTasks.updateTask, {
+                id: args.taskId,
+                state: { type: "running" }
+            });
 
             const result = await run(
                 agent,

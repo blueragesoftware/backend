@@ -1,13 +1,10 @@
 {
-  "name": "agent-os",
+  "name": "Bluerage",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Home for Agents",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [],
-  "author": "Ertem Biyik",
+  "author": "Bluerage Software",
   "license": "ISC",
   "packageManager": "pnpm@10.15.0",
   "dependencies": {
@@ -16,6 +13,7 @@
     "@clerk/backend": "^2.12.1",
     "@composio/core": "^0.1.49",
     "@composio/openai-agents": "^0.1.49",
+    "@convex-dev/workpool": "^0.2.18",
     "@openai/agents": "^0.1.0",
     "@openai/agents-extensions": "^0.1.0",
     "@openrouter/ai-sdk-provider": "^1.2.0",

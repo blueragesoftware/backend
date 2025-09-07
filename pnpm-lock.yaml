@@ -23,6 +23,9 @@ importers:
       '@composio/openai-agents':
         specifier: ^0.1.49
         version: 0.1.49(@composio/core@0.1.49(ws@8.18.3))(@openai/agents@0.1.0(ws@8.18.3)(zod@3.25.76))
+      '@convex-dev/workpool':
+        specifier: ^0.2.18
+        version: 0.2.18(convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.26.2(react@19.1.1))(react@19.1.1)(zod@3.25.76))(convex@1.26.2(react@19.1.1))
       '@openai/agents':
         specifier: ^0.1.0
         version: 0.1.0(ws@8.18.3)(zod@3.25.76)
@@ -140,6 +143,12 @@ packages:
     peerDependencies:
       '@composio/core': 0.1.49
       '@openai/agents': ^0.0.17
+
+  '@convex-dev/workpool@0.2.18':
+    resolution: {integrity: sha512-tfRfBCukaRiybxwy4/W3rLWpIRhPivFH9tC5++d0XE1sV627vw2mAwOM9SnpY1k+BWVoNrHrHrxBheklSbuAag==}
+    peerDependencies:
+      convex: '>=1.25.0 <1.35.0'
+      convex-helpers: ^0.1.94
 
   '@esbuild/aix-ppc64@0.25.4':
     resolution: {integrity: sha512-1VCICWypeQKhVbE9oW/sJaAmjLxhVqacdkvPLEjwlttjfwENRSClS8EjBz0KzRyFSCPDIkuXW34Je/vk7zdB7Q==}
@@ -1079,6 +1088,11 @@ snapshots:
     dependencies:
       '@composio/core': 0.1.49(ws@8.18.3)
       '@openai/agents': 0.1.0(ws@8.18.3)(zod@3.25.76)
+
+  '@convex-dev/workpool@0.2.18(convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.26.2(react@19.1.1))(react@19.1.1)(zod@3.25.76))(convex@1.26.2(react@19.1.1))':
+    dependencies:
+      convex: 1.26.2(react@19.1.1)
+      convex-helpers: 0.1.104(@standard-schema/spec@1.0.0)(convex@1.26.2(react@19.1.1))(react@19.1.1)(zod@3.25.76)
 
   '@esbuild/aix-ppc64@0.25.4':
     optional: true

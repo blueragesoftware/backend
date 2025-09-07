@@ -1,8 +1,14 @@
 import { internalMutation, mutation, query } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { internal, components } from "./_generated/api";
 import { ConvexError, v } from "convex/values";
 import { getCurrentUserOrThrow } from "./users"
 import { getAgentByIdWithModel } from "./agents"
+import { Workpool } from "@convex-dev/workpool"
+
+const agentsWorkpool = new Workpool(components.agentsWorkpool, {
+    maxParallelism: 10,
+    retryActionsByDefault: false
+});
 
 export const getAllByAgentId = query({
     args: {
@@ -72,7 +78,7 @@ export const create = mutation({
             updatedAt: Date.now()
         });
 
-        await ctx.scheduler.runAfter(0, internal.executeAgent.executeWithId, {
+        await agentsWorkpool.enqueueAction(ctx, internal.executeAgent.executeWithId, {
             taskId
         });
     }
