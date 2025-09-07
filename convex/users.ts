@@ -29,13 +29,40 @@ export const deleteFromClerk = internalMutation({
     async handler(ctx, { clerkUserId }) {
         const user = await userByExternalId(ctx, clerkUserId);
 
-        if (user !== null) {
-            await ctx.db.delete(user._id);
-        } else {
-            console.warn(
-                `Can't delete user, there is none for Clerk user ID: ${clerkUserId}`,
-            );
+        if (user == null) {
+            console.warn(`Can't delete user, there is none for Clerk user ID: ${clerkUserId}`);
+
+            return;
         }
+
+        const agents = await ctx.db
+            .query("agents")
+            .withIndex("by_userId", (q) => q.eq("userId", user._id))
+            .collect();
+        
+        for (const agent of agents) {
+            await ctx.db.delete(agent._id);
+        }
+
+        const executionTasks = await ctx.db
+            .query("executionTasks")
+            .withIndex("by_userId", (q) => q.eq("agent.userId", user._id))
+            .collect();
+        
+        for (const task of executionTasks) {
+            await ctx.db.delete(task._id);
+        }
+
+        const customModels = await ctx.db
+            .query("customModels")
+            .withIndex("by_userId", (q) => q.eq("userId", user._id))
+            .collect();
+        
+        for (const model of customModels) {
+            await ctx.db.delete(model._id);
+        }
+
+        await ctx.db.delete(user._id);
     },
 });
 
