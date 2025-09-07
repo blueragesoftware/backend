@@ -15,6 +15,7 @@ import { getToolsBySlugsForUserWithId } from "./tools"
 import { PostHog } from "posthog-node";
 import { withTracing } from "@posthog/ai"
 import { LanguageModel } from "ai";
+import { createXai } from "@ai-sdk/xai"
 
 export const executeWithId = internalAction({
     args: {
@@ -75,6 +76,11 @@ export const executeWithId = internalAction({
 
                     model = anthropic.chat(task.model.modelId);
                     break;
+                case "xai":
+                    const decryptedXaiKey = await decryptCustomKey(task.model.encryptedCustomApiKey || null);
+                    const xai = createXai(decryptedXaiKey ? { apiKey: decryptedXaiKey } : {});
+
+                    model = xai.chat(task.model.modelId);
                 default:
                     throw new ConvexError("Invalid model provider");
             }

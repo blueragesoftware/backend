@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "description": "A Home for Agents",
   "main": "index.js",
-  "keywords": ["automation", "agents"],
+  "keywords": [
+    "automation",
+    "agents"
+  ],
   "author": "Bluerage Software",
   "license": "ISC",
   "packageManager": "pnpm@10.15.0",
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.12",
     "@ai-sdk/openai": "^2.0.24",
+    "@ai-sdk/xai": "^2.0.16",
     "@clerk/backend": "^2.12.1",
     "@composio/core": "^0.1.50",
     "@composio/openai-agents": "^0.1.50",

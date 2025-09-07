@@ -3,7 +3,7 @@ import { v } from "convex/values";
 
 export const model = v.object({
     name: v.string(),
-    provider: v.union(v.literal("openrouter"), v.literal("openai"), v.literal("anthropic")),
+    provider: v.union(v.literal("openrouter"), v.literal("openai"), v.literal("anthropic"), v.literal("xai")),
     modelId: v.string(),
     encryptedCustomApiKey: v.optional(v.string())
 });
