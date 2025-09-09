@@ -12,7 +12,8 @@ export const customModel = v.object({
     provider: v.union(v.literal("openrouter"), v.literal("openai"), v.literal("anthropic"), v.literal("xai")),
     modelId: v.string(),
     userId: v.string(),
-    encryptedApiKey: v.string()
+    encryptedApiKey: v.string(),
+    baseUrl: v.optional(v.string())
 });
 
 export const agent = v.object({
@@ -30,12 +31,12 @@ export const agent = v.object({
     })),
     model: v.union(
         v.object({
-            type: v.literal("model"),
-            id: v.id("models")
+            id: v.id("models"),
+            type: v.literal("model")
         }),
         v.object({
-            type: v.literal("customModel"),
-            id: v.id("customModels")
+            id: v.id("customModels"),
+            type: v.literal("customModel")
         })
     ),
     userId: v.id("users"),
@@ -50,22 +51,16 @@ export const executionTask = v.object({
     }),
     model: v.union(
         v.object({
-            type: v.literal("model"),
-            id: v.id("models"),
-            data: v.object({
-                ...model.fields,
-                _id: v.id("models"),
-                _creationTime: v.number()
-            })
+            _id: v.id("models"),
+            _creationTime: v.number(),
+            ...model.fields,
+            type: v.literal("model")
         }),
         v.object({
-            type: v.literal("customModel"),
-            id: v.id("customModels"),
-            data: v.object({
-                ...customModel.fields,
-                _id: v.id("customModels"),
-                _creationTime: v.number()
-            })
+            _id: v.id("customModels"),
+            _creationTime: v.number(),
+            ...customModel.fields,
+            type: v.literal("customModel")
         })
     ),
     state: v.union(
@@ -89,7 +84,8 @@ export default defineSchema({
     users: defineTable({
         name: v.string(),
         externalId: v.string(),
-    }).index("byExternalId", ["externalId"]),
+    })
+        .index("byExternalId", ["externalId"]),
     customModels: defineTable(customModel)
         .index("by_userId", ["userId"])
 });

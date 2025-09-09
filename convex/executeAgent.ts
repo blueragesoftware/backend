@@ -4,32 +4,31 @@ import { Agent, run } from "@openai/agents";
 import { Composio } from '@composio/core';
 import { OpenAIAgentsProvider } from '@composio/openai-agents';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { aisdk, AiSdkModel } from '@openai/agents-extensions';
-import { createOpenAI } from '@ai-sdk/openai';
+import { aisdk } from '@openai/agents-extensions';
+import { createOpenAI, OpenAIProviderSettings } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { internalAction } from './_generated/server';
 import { ConvexError, v } from "convex/values";
-import { api, internal } from './_generated/api';
+import { internal } from './_generated/api';
 import { decryptApiKey } from "./encryption";
 import { getToolsBySlugsForUserWithId } from "./tools"
 import { PostHog } from "posthog-node";
 import { withTracing } from "@posthog/ai"
 import { LanguageModel } from "ai";
 import { createXai } from "@ai-sdk/xai"
+import { executionTask } from "./schema"
 
 export const executeWithId = internalAction({
     args: {
-        taskId: v.id("executionTasks"),
+        task: v.object({
+            _id: v.id("executionTasks"),
+            _creationTime: v.number(),
+            ...executionTask.fields
+        }),
     },
     handler: async (ctx, args) => {
         try {
-            const task = await ctx.runQuery(api.executionTasks.getById, {
-                id: args.taskId
-            });
-
-            if (task === null) {
-                throw new ConvexError("Task not found");
-            }
+            const task = args.task;
 
             const composio = new Composio({
                 provider: new OpenAIAgentsProvider({
@@ -58,24 +57,27 @@ export const executeWithId = internalAction({
             let modelId: string;
             let provider: "openrouter" | "openai" | "anthropic" | "xai";
             let encryptedApiKey: string | undefined;
+            let baseUrl: string | undefined;
 
             switch (task.model.type) {
                 case "model":
-                    modelId = task.model.data.modelId;
-                    provider = task.model.data.provider;
+                    modelId = task.model.modelId;
+                    provider = task.model.provider;
                     encryptedApiKey = undefined;
+                    baseUrl = undefined;
                     break;
                 case "customModel":
-                    modelId = task.model.data.modelId;
-                    provider = task.model.data.provider;
-                    encryptedApiKey = task.model.data.encryptedApiKey;
+                    modelId = task.model.modelId;
+                    provider = task.model.provider;
+                    encryptedApiKey = task.model.encryptedApiKey;
+                    baseUrl = task.model.baseUrl;
                     break;
                 default:
                     throw new ConvexError("Invalid model type");
             }
 
             let model: LanguageModel;
-            
+
             switch (provider) {
                 case "openrouter":
                     const decryptedOpenRouterKey = encryptedApiKey ? decryptApiKey(encryptedApiKey) : null;
@@ -85,7 +87,16 @@ export const executeWithId = internalAction({
                     break;
                 case "openai":
                     const decryptedOpenAIKey = encryptedApiKey ? decryptApiKey(encryptedApiKey) : null;
-                    const openai = createOpenAI(decryptedOpenAIKey ? { apiKey: decryptedOpenAIKey } : {});
+                    const openaiConfig: OpenAIProviderSettings = {};
+
+                    if (decryptedOpenAIKey) {
+                        openaiConfig.apiKey = decryptedOpenAIKey;
+                    }
+                    if (baseUrl) {
+                        openaiConfig.baseURL = baseUrl;
+                    }
+
+                    const openai = createOpenAI(openaiConfig);
 
                     model = openai.chat(modelId);
                     break;
@@ -127,7 +138,7 @@ export const executeWithId = internalAction({
             const formattedSteps = task.agent.steps.map((step, index) => `${index + 1}. ${step.value}`).join('\n');
 
             await ctx.runMutation(internal.executionTasks.updateTask, {
-                id: args.taskId,
+                id: args.task._id,
                 state: { type: "running" }
             });
 
@@ -137,17 +148,18 @@ export const executeWithId = internalAction({
             );
 
             await ctx.runMutation(internal.executionTasks.updateTask, {
-                id: args.taskId,
+                id: args.task._id,
                 state: { type: "success", result: result.finalOutput ?? "No result" }
             });
         } catch (error) {
             console.error("Error executing agent", error);
 
             await ctx.runMutation(internal.executionTasks.updateTask, {
-                id: args.taskId,
+                id: args.task._id,
                 state: { type: "error", error: (error as Error).message }
             });
         }
     }
 });
+
 

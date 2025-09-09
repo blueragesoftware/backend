@@ -44,7 +44,7 @@ export const create = mutation({
             const id = await ctx.db
                 .insert("agents", {
                     name: "New Agent",
-                    description: "This is your new agent",
+                    description: "",
                     iconUrl: "",
                     goal: "",
                     tools: [],
@@ -169,26 +169,39 @@ export async function getAgentByIdWithModel(
         return null;
     }
 
-    let model;
+    let modelUnion;
 
     switch (agent.model.type) {
         case "model":
-            model = await getModelById(db, agent.model.id);
+            const model = await getModelById(db, agent.model.id);
+
+            if (model === null) {
+                return null;
+            }
+
+            modelUnion = {
+                ...model,
+                type: "model" as const
+            }
             break;
         case "customModel":
-            model = await getCustomModelById(db, userId, agent.model.id);
+            const customModel = await getCustomModelById(db, userId, agent.model.id);
+
+            if (customModel === null) {
+                return null;
+            }
+
+            modelUnion = {
+                ...customModel,
+                type: "customModel" as const
+            }
             break;
         default:
-            model = null;
+            modelUnion = null;
     }
 
-    if (model === null) {
+    if (modelUnion === null) {
         return null;
-    }
-
-    const modelUnion = {
-        type: agent.model.type,
-        ...model
     }
 
     return {

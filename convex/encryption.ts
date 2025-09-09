@@ -31,6 +31,6 @@ export function decryptApiKey(encryptedText: string): string {
         return plainText;
     } catch (error) {
         console.error("Decryption failed:", error);
-        throw new error;
+        throw error;
     }
 }

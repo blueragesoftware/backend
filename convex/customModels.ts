@@ -1,6 +1,5 @@
 import { DatabaseReader, mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
-import { model } from "./schema";
 import { getCurrentUserOrThrow } from "./users";
 import { Doc, Id } from "./_generated/dataModel";
 import { encryptApiKey, decryptApiKey } from "./encryption";
@@ -16,7 +15,8 @@ export const create = mutation({
             provider: "openai",
             modelId: "",
             name: "",
-            encryptedApiKey: ""
+            encryptedApiKey: "",
+            baseUrl: undefined
         });
 
         return await getCustomModelById(ctx.db, user._id, id);
@@ -29,7 +29,8 @@ export const update = mutation({
         name: v.optional(v.string()),
         provider: v.optional(v.union(v.literal("openrouter"), v.literal("openai"), v.literal("anthropic"), v.literal("xai"))),
         modelId: v.optional(v.string()),
-        encryptedApiKey: v.optional(v.string())
+        encryptedApiKey: v.optional(v.string()),
+        baseUrl: v.optional(v.string())
     },
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
@@ -47,6 +48,9 @@ export const update = mutation({
         if (args.modelId !== undefined) updates.modelId = args.modelId;
         if (args.encryptedApiKey !== undefined) {
             updates.encryptedApiKey = encryptApiKey(args.encryptedApiKey);
+        }
+        if (args.baseUrl !== undefined) {
+            updates.baseUrl = args.baseUrl === "" ? undefined : args.baseUrl;
         }
 
         await ctx.db.patch(args.id, updates);

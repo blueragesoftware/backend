@@ -53,7 +53,13 @@ export const getBySlugsForUser = action({
     handler: async (ctx, args) => {
         const user = await ctx.runQuery(internal.users.getCurrentOrThrow);
 
-        return await getToolsBySlugsForUserWithId(user._id, args.slugs);
+        if (user === null) {
+            return null;
+        }
+
+        const tools = await getToolsBySlugsForUserWithId(user._id, args.slugs);
+
+        return tools;
     }
 });
 

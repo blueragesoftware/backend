@@ -1,9 +1,10 @@
-import { internalMutation, mutation, query } from "./_generated/server";
+import { DatabaseReader, internalMutation, mutation, query } from "./_generated/server";
 import { internal, components } from "./_generated/api";
 import { ConvexError, v } from "convex/values";
 import { getCurrentUserOrThrow } from "./users"
 import { getAgentByIdWithModel } from "./agents"
 import { Workpool } from "@convex-dev/workpool"
+import { Id } from "./_generated/dataModel"
 
 const agentsWorkpool = new Workpool(components.agentsWorkpool, {
     maxParallelism: 10,
@@ -34,8 +35,9 @@ export const getById = query({
         id: v.id("executionTasks"),
     },
     handler: async (ctx, args) => {
-        return await ctx.db
-            .get(args.id);
+        const user = await getCurrentUserOrThrow(ctx);
+
+        return await getExecutionTaskById(ctx.db, user._id, args.id);
     }
 });
 
@@ -78,8 +80,32 @@ export const create = mutation({
             updatedAt: Date.now()
         });
 
+        const task = await getExecutionTaskById(ctx.db, user._id, taskId);
+
+        if (task == null) {
+            return null;
+        }
+
         await agentsWorkpool.enqueueAction(ctx, internal.executeAgent.executeWithId, {
-            taskId
+            task
         });
     }
 });
+
+export async function getExecutionTaskById(
+    db: DatabaseReader,
+    userId: Id<"users">,
+    id: Id<"executionTasks">
+) {
+    const task = await db.get(id);
+
+    if (task === null) {
+        return null;
+    }
+
+    if (task.agent.userId !== userId) {
+        return null;
+    }
+
+    return task;
+}
