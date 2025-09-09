@@ -55,32 +55,52 @@ export const executeWithId = internalAction({
                 throw new ConvexError(`Tools missing authentication: ${missingTools.join(', ')}`);
             }
 
-            let model: LanguageModel;
+            let modelId: string;
+            let provider: "openrouter" | "openai" | "anthropic" | "xai";
+            let encryptedApiKey: string | undefined;
 
-            switch (task.model.provider) {
+            switch (task.model.type) {
+                case "model":
+                    modelId = task.model.data.modelId;
+                    provider = task.model.data.provider;
+                    encryptedApiKey = undefined;
+                    break;
+                case "customModel":
+                    modelId = task.model.data.modelId;
+                    provider = task.model.data.provider;
+                    encryptedApiKey = task.model.data.encryptedApiKey;
+                    break;
+                default:
+                    throw new ConvexError("Invalid model type");
+            }
+
+            let model: LanguageModel;
+            
+            switch (provider) {
                 case "openrouter":
-                    const decryptedOpenRouterKey = await decryptCustomKey(task.model.encryptedCustomApiKey || null);
+                    const decryptedOpenRouterKey = await decryptCustomKey(encryptedApiKey || null);
                     const openrouter = createOpenRouter(decryptedOpenRouterKey ? { apiKey: decryptedOpenRouterKey } : {});
 
-                    model = openrouter.chat(task.model.modelId);
+                    model = openrouter.chat(modelId);
                     break;
                 case "openai":
-                    const decryptedOpenAIKey = await decryptCustomKey(task.model.encryptedCustomApiKey || null);
+                    const decryptedOpenAIKey = await decryptCustomKey(encryptedApiKey || null);
                     const openai = createOpenAI(decryptedOpenAIKey ? { apiKey: decryptedOpenAIKey } : {});
 
-                    model = openai.chat(task.model.modelId);
+                    model = openai.chat(modelId);
                     break;
                 case "anthropic":
-                    const decryptedAnthropicKey = await decryptCustomKey(task.model.encryptedCustomApiKey || null);
+                    const decryptedAnthropicKey = await decryptCustomKey(encryptedApiKey || null);
                     const anthropic = createAnthropic(decryptedAnthropicKey ? { apiKey: decryptedAnthropicKey } : {});
 
-                    model = anthropic.chat(task.model.modelId);
+                    model = anthropic.chat(modelId);
                     break;
                 case "xai":
-                    const decryptedXaiKey = await decryptCustomKey(task.model.encryptedCustomApiKey || null);
+                    const decryptedXaiKey = await decryptCustomKey(encryptedApiKey || null);
                     const xai = createXai(decryptedXaiKey ? { apiKey: decryptedXaiKey } : {});
 
-                    model = xai.chat(task.model.modelId);
+                    model = xai.chat(modelId);
+                    break;
                 default:
                     throw new ConvexError("Invalid model provider");
             }

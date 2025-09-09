@@ -9,6 +9,8 @@
  */
 
 import type * as agents from "../agents.js";
+import type * as allModels from "../allModels.js";
+import type * as customModels from "../customModels.js";
 import type * as executeAgent from "../executeAgent.js";
 import type * as executionTasks from "../executionTasks.js";
 import type * as http from "../http.js";
@@ -32,6 +34,8 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   agents: typeof agents;
+  allModels: typeof allModels;
+  customModels: typeof customModels;
   executeAgent: typeof executeAgent;
   executionTasks: typeof executionTasks;
   http: typeof http;

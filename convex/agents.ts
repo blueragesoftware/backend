@@ -1,6 +1,7 @@
 import { DatabaseReader, mutation, query } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { getModelById, getDefaultModel } from "./models"
+import { getCustomModelById } from "./customModels";
 import { Doc, Id } from "./_generated/dataModel";
 import { getCurrentUserOrThrow } from "./users"
 
@@ -48,7 +49,10 @@ export const create = mutation({
                     goal: "",
                     tools: [],
                     steps: [],
-                    modelId: defaultModel._id,
+                    model: {
+                        type: "model",
+                        id: defaultModel._id
+                    },
                     userId: user._id
                 });
 
@@ -75,7 +79,16 @@ export const update = mutation({
             id: v.string(),
             value: v.string()
         }))),
-        modelId: v.optional(v.id("models"))
+        model: v.optional(v.union(
+            v.object({
+                type: v.literal("model"),
+                id: v.id("models")
+            }),
+            v.object({
+                type: v.literal("customModel"),
+                id: v.id("customModels")
+            })
+        ))
     },
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
@@ -94,7 +107,7 @@ export const update = mutation({
         if (args.goal !== undefined) updates.goal = args.goal;
         if (args.tools !== undefined) updates.tools = args.tools;
         if (args.steps !== undefined) updates.steps = args.steps;
-        if (args.modelId !== undefined) updates.modelId = args.modelId;
+        if (args.model !== undefined) updates.model = args.model;
 
         return await ctx.db.patch(args.id, updates);
     }
@@ -110,7 +123,7 @@ export const removeByIds = mutation({
         for (const id of args.id) {
             const agent = await getAgentById(ctx.db, user._id, id);
 
-            if (agent?.userId === user._id) {
+            if (agent !== null) {
                 return await ctx.db
                     .delete(id)
             } else {
@@ -152,18 +165,34 @@ export async function getAgentByIdWithModel(
 ) {
     const agent = await getAgentById(db, userId, id);
 
-    if (!agent) {
+    if (agent === null) {
         return null;
     }
 
-    const model = await getModelById(db, agent.modelId)
+    let model;
 
-    if (!model) {
+    switch (agent.model.type) {
+        case "model":
+            model = await getModelById(db, agent.model.id);
+            break;
+        case "customModel":
+            model = await getCustomModelById(db, userId, agent.model.id);
+            break;
+        default:
+            model = null;
+    }
+
+    if (model === null) {
         return null;
+    }
+
+    const modelUnion = {
+        type: agent.model.type,
+        ...model
     }
 
     return {
         agent,
-        model
+        model: modelUnion
     }
 }
