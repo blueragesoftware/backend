@@ -27,12 +27,6 @@ export const getById = query({
     },
 });
 
-export async function decryptCustomKey(
-    key: string | null
-): Promise<string | null> {
-    // logic to decrypt
-    return null;
-}
 
 export async function getModelById(
     db: DatabaseReader,

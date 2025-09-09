@@ -1,5 +1,6 @@
 import { query } from "./_generated/server";
 import { getCurrentUserOrThrow } from "./users";
+import { decryptApiKey } from "./encryption";
 
 export const get = query({
     handler: async (ctx) => {
@@ -16,7 +17,10 @@ export const get = query({
 
         return {
             models,
-            customModels
+            customModels: customModels.map(customModel => ({
+                ...customModel,
+                encryptedApiKey: decryptApiKey(customModel.encryptedApiKey)
+            }))
         };
     },
 });

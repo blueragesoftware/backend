@@ -3,6 +3,7 @@ import { ConvexError, v } from "convex/values";
 import { model } from "./schema";
 import { getCurrentUserOrThrow } from "./users";
 import { Doc, Id } from "./_generated/dataModel";
+import { encryptApiKey, decryptApiKey } from "./encryption";
 
 export type CustomModel = Doc<"customModels">;
 
@@ -44,7 +45,9 @@ export const update = mutation({
         if (args.name !== undefined) updates.name = args.name;
         if (args.provider !== undefined) updates.provider = args.provider;
         if (args.modelId !== undefined) updates.modelId = args.modelId;
-        if (args.encryptedApiKey !== undefined) updates.encryptedApiKey = args.encryptedApiKey;
+        if (args.encryptedApiKey !== undefined) {
+            updates.encryptedApiKey = encryptApiKey(args.encryptedApiKey);
+        }
 
         await ctx.db.patch(args.id, updates);
 
@@ -65,9 +68,9 @@ export const removeByIds = mutation({
             if (agent !== null) {
                 return await ctx.db
                     .delete(id)
-            } else {
-                throw new ConvexError("Agent not found");
-            }
+            } 
+            
+            throw new ConvexError("Agent not found");
         }
     }
 });
@@ -79,7 +82,16 @@ export const getById = query({
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
 
-        return await getCustomModelById(ctx.db, user._id, args.id);
+        const customModel = await getCustomModelById(ctx.db, user._id, args.id);
+        
+        if (!customModel) {
+            return null;
+        }
+
+        return {
+            ...customModel,
+            encryptedApiKey: customModel.encryptedApiKey === "" ? "" : decryptApiKey(customModel.encryptedApiKey) 
+        };
     },
 });
 
@@ -87,10 +99,15 @@ export const getAll = query({
     handler: async (ctx) => {
         const user = await getCurrentUserOrThrow(ctx);
 
-        return await ctx.db
+        const customModels = await ctx.db
             .query("customModels")
             .withIndex("by_userId", (q) => q.eq("userId", user._id))
             .collect();
+
+        return customModels.map(customModel => ({
+            ...customModel,
+            encryptedApiKey: customModel.encryptedApiKey === "" ? "" : decryptApiKey(customModel.encryptedApiKey)
+        }));
     },
 });
 

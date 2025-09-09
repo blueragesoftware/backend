@@ -10,7 +10,7 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { internalAction } from './_generated/server';
 import { ConvexError, v } from "convex/values";
 import { api, internal } from './_generated/api';
-import { decryptCustomKey } from "./models";
+import { decryptApiKey } from "./encryption";
 import { getToolsBySlugsForUserWithId } from "./tools"
 import { PostHog } from "posthog-node";
 import { withTracing } from "@posthog/ai"
@@ -78,25 +78,25 @@ export const executeWithId = internalAction({
             
             switch (provider) {
                 case "openrouter":
-                    const decryptedOpenRouterKey = await decryptCustomKey(encryptedApiKey || null);
+                    const decryptedOpenRouterKey = encryptedApiKey ? decryptApiKey(encryptedApiKey) : null;
                     const openrouter = createOpenRouter(decryptedOpenRouterKey ? { apiKey: decryptedOpenRouterKey } : {});
 
                     model = openrouter.chat(modelId);
                     break;
                 case "openai":
-                    const decryptedOpenAIKey = await decryptCustomKey(encryptedApiKey || null);
+                    const decryptedOpenAIKey = encryptedApiKey ? decryptApiKey(encryptedApiKey) : null;
                     const openai = createOpenAI(decryptedOpenAIKey ? { apiKey: decryptedOpenAIKey } : {});
 
                     model = openai.chat(modelId);
                     break;
                 case "anthropic":
-                    const decryptedAnthropicKey = await decryptCustomKey(encryptedApiKey || null);
+                    const decryptedAnthropicKey = encryptedApiKey ? decryptApiKey(encryptedApiKey) : null;
                     const anthropic = createAnthropic(decryptedAnthropicKey ? { apiKey: decryptedAnthropicKey } : {});
 
                     model = anthropic.chat(modelId);
                     break;
                 case "xai":
-                    const decryptedXaiKey = await decryptCustomKey(encryptedApiKey || null);
+                    const decryptedXaiKey = encryptedApiKey ? decryptApiKey(encryptedApiKey) : null;
                     const xai = createXai(decryptedXaiKey ? { apiKey: decryptedXaiKey } : {});
 
                     model = xai.chat(modelId);

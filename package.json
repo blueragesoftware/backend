@@ -22,10 +22,12 @@
     "@openai/agents-extensions": "^0.1.0",
     "@openrouter/ai-sdk-provider": "^1.2.0",
     "@posthog/ai": "^6.3.2",
+    "@types/crypto-js": "^4.2.2",
     "agents": "^0.0.113",
     "ai": "^5.0.34",
     "convex": "^1.26.2",
     "convex-helpers": "^0.1.104",
+    "crypto-js": "^4.2.0",
     "posthog-node": "^5.8.2",
     "svix": "^1.76.1"
   }
