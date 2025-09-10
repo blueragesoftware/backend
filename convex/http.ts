@@ -3,6 +3,7 @@ import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { WebhookEvent } from "@clerk/backend";
 import { Webhook } from "svix";
+import { Id } from "./_generated/dataModel";
 
 const http = httpRouter();
 
@@ -50,6 +51,22 @@ http.route({
         console.log(`Composion webhook: ${request.body}`);
 
         return new Response(null, { status: 200 });
+    }),
+});
+
+http.route({
+    path: "/getImage",
+    method: "GET",
+    handler: httpAction(async (ctx, request) => {
+        const { searchParams } = new URL(request.url);
+        const storageId = searchParams.get("storageId")! as Id<"_storage">;
+        const blob = await ctx.storage.get(storageId);
+        if (blob === null) {
+            return new Response("Image not found", {
+                status: 404,
+            });
+        }
+        return new Response(blob);
     }),
 });
 

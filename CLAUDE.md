@@ -5,8 +5,7 @@ code in this repository.
 
 ## Project description
 
-We creating the next generation of automation through an AI agents execution
-environment. We believe that instead of complex programming, users simply describe what they want accomplished, and our platform handles the rest. A declartive approach. Anyone can create AI agents by connecting their existing applications via tools and assembling a workflow. These agents run automatically based on schedules or triggers, and can be easily shared.
+We creating an execution environment for AI Agents. We believe that instead of complex programming, users simply describe what they want accomplished, and our platform handles the rest. A declartive approach. Anyone can create AI agents by connecting their existing applications via tools and assembling a workflow. These agents run automatically based on schedules or triggers, and can be easily shared.
 Our iOS app makes it seamless to share content with your agents and trigger workflows on-the-go. We serve both consumers looking to automate personal tasks and businesses needing regular automation. It's a platform designed for rapid experimentation—launch small automation ideas, see what works, and iterate quickly.
 
 ## Architecture Overview
@@ -29,16 +28,6 @@ consists of:
 - **Mutations**: `create`, `update`, `remove` - Modify agent records
 - **Actions**: `runAgent` - Executes agents via external worker service using
   the `agents` npm package
-
-### Agent Model
-
-Agents have the following properties:
-
-- `name`: Display name
-- `goal`: Agent's objective
-- `tools`: Array of toolkit names
-- `steps`: Execution instructions
-- `model`: AI model identifier
 
 ## Development Commands
 
