@@ -1,7 +1,7 @@
 "use node";
 
 import { Agent, run } from "@openai/agents";
-import { Composio } from '@composio/core';
+import { Composio, ComposioLinkConnectionDataSchema } from '@composio/core';
 import { OpenAIAgentsProvider } from '@composio/openai-agents';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { aisdk } from '@openai/agents-extensions';
@@ -36,22 +36,30 @@ export const executeWithId = internalAction({
                 })
             });
 
+            let tools;
+
             const requestedToolSlugs = task.agent.tools.map(tool => tool.slug);
 
-            const userAvailableRequestedTools = await getToolsBySlugsForUserWithId(task.agent.userId, requestedToolSlugs);
+            if (requestedToolSlugs.length === 0) {
+                tools = undefined;
+            } else {
+                const userAvailableRequestedTools = await getToolsBySlugsForUserWithId(task.agent.userId, requestedToolSlugs);
 
-            const tools = await composio.tools.get(task.agent.userId, {
-                toolkits: requestedToolSlugs
-            });
+                console.log("tools", tools)
 
-            // Verify all requested tools are available
-            const requestedSet = new Set<string>(requestedToolSlugs);
-            const availableSet = new Set<string>(userAvailableRequestedTools.map(tool => tool.slug));
+                // Verify all requested tools are available
+                const requestedSet = new Set<string>(requestedToolSlugs);
+                const availableSet = new Set<string>(userAvailableRequestedTools.map(tool => tool.slug));
 
-            const missingTools = [...requestedSet].filter(slug => !availableSet.has(slug));
+                const missingTools = [...requestedSet].filter(slug => !availableSet.has(slug));
 
-            if (missingTools.length > 0) {
-                throw new ConvexError(`Tools missing authentication: ${missingTools.join(', ')}`);
+                if (missingTools.length > 0) {
+                    throw new ConvexError(`Tools missing authentication: ${missingTools.join(', ')}`);
+                }
+
+                tools = await composio.tools.get(task.agent.userId, {
+                    toolkits: requestedToolSlugs
+                });
             }
 
             let modelId: string;
@@ -131,7 +139,7 @@ export const executeWithId = internalAction({
             const agent = new Agent({
                 instructions: `You are an ai agent that executes user defined steps in a given order using tools provided alongside.\nYour goal is: ${goal}.\nCurrent date is: ${new Date().toLocaleDateString()}.`,
                 name: "StepsFollowingAgent",
-                tools,
+                tools: tools,
                 model: aiSdkModel
             });
 

@@ -5,11 +5,7 @@ import { getCustomModelById } from "./customModels";
 import { Doc, Id } from "./_generated/dataModel";
 import { getCurrentUserOrThrow } from "./users"
 
-const defaultImagesIds = [
-    "kg269nvmbxcak2was0ckrj3s9n7qbcw8",
-    "kg24jh9hrx1jxnkfdnqcgc0cw17qaqze",
-    "kg278zk3nnvyymadj2dq297vzs7qa8ys"
-]
+const defaultImagesIds = process.env.DEFAULT_IMAGE_IDS!.split(", ")
 
 export type Agent = Doc<"agents">;
 
