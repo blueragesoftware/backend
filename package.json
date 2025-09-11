@@ -1,14 +1,25 @@
 {
   "name": "Bluerage",
   "version": "1.0.0",
-  "description": "A Home for Agents",
+  "description": "Mobile first AI-powered automation that thinks and acts for you",
   "main": "index.js",
+  "repository": "github:blueragesoftware/backend",
+  "homepage": "https://bluerage.software",
+  "bugs": {
+    "email": "feedback@convex.dev",
+    "url": "https://github.com/blueragesoftware/backend/issues"
+  },
   "keywords": [
+    "ai",
     "automation",
-    "agents"
+    "agents",
+    "bluearge",
+    "workflows",
+    "tools",
+    "integration"
   ],
   "author": "Bluerage Software",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "packageManager": "pnpm@10.15.0",
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.15",
