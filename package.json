@@ -16,7 +16,7 @@
     "@ai-sdk/xai": "^2.0.16",
     "@clerk/backend": "^2.13.0",
     "@composio/core": "^0.1.51",
-    "@composio/openai-agents": "^0.1.51",
+    "@composio/openai-agents": "^0.1.52",
     "@convex-dev/workpool": "^0.2.18",
     "@openai/agents": "^0.1.1",
     "@openai/agents-extensions": "^0.1.0",
@@ -24,11 +24,11 @@
     "@posthog/ai": "^6.3.2",
     "@types/crypto-js": "^4.2.2",
     "agents": "^0.0.113",
-    "ai": "^5.0.39",
+    "ai": "^5.0.40",
     "convex": "^1.27.0",
     "convex-helpers": "^0.1.104",
     "crypto-js": "^4.2.0",
-    "posthog-node": "^5.8.2",
+    "posthog-node": "^5.8.3",
     "svix": "^1.76.1"
   }
 }

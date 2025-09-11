@@ -24,8 +24,8 @@ importers:
         specifier: ^0.1.51
         version: 0.1.51(ws@8.18.3)
       '@composio/openai-agents':
-        specifier: ^0.1.51
-        version: 0.1.51(@composio/core@0.1.51(ws@8.18.3))(@openai/agents@0.1.1(ws@8.18.3)(zod@3.25.76))
+        specifier: ^0.1.52
+        version: 0.1.52(@composio/core@0.1.51(ws@8.18.3))(@openai/agents@0.1.1(ws@8.18.3)(zod@3.25.76))
       '@convex-dev/workpool':
         specifier: ^0.2.18
         version: 0.2.18(convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.27.0(react@19.1.1))(react@19.1.1)(zod@3.25.76))(convex@1.27.0(react@19.1.1))
@@ -37,10 +37,10 @@ importers:
         version: 0.1.0(@openai/agents@0.1.1(ws@8.18.3)(zod@3.25.76))(ws@8.18.3)(zod@3.25.76)
       '@openrouter/ai-sdk-provider':
         specifier: ^1.2.0
-        version: 1.2.0(ai@5.0.39(zod@3.25.76))(zod@3.25.76)
+        version: 1.2.0(ai@5.0.40(zod@3.25.76))(zod@3.25.76)
       '@posthog/ai':
         specifier: ^6.3.2
-        version: 6.3.2(@modelcontextprotocol/sdk@1.17.5)(@opentelemetry/api@1.9.0)(posthog-node@5.8.2)(ws@8.18.3)
+        version: 6.3.2(@modelcontextprotocol/sdk@1.17.5)(@opentelemetry/api@1.9.0)(posthog-node@5.8.3)(ws@8.18.3)
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
@@ -48,8 +48,8 @@ importers:
         specifier: ^0.0.113
         version: 0.0.113(@cloudflare/workers-types@4.20250823.0)(react@19.1.1)
       ai:
-        specifier: ^5.0.39
-        version: 5.0.39(zod@3.25.76)
+        specifier: ^5.0.40
+        version: 5.0.40(zod@3.25.76)
       convex:
         specifier: ^1.27.0
         version: 1.27.0(react@19.1.1)
@@ -60,8 +60,8 @@ importers:
         specifier: ^4.2.0
         version: 4.2.0
       posthog-node:
-        specifier: ^5.8.2
-        version: 5.8.2
+        specifier: ^5.8.3
+        version: 5.8.3
       svix:
         specifier: ^1.76.1
         version: 1.76.1
@@ -74,8 +74,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4
 
-  '@ai-sdk/gateway@1.0.20':
-    resolution: {integrity: sha512-2K0kGnHyLfT1v2+3xXbLqohfWBJ/vmIh1FTWnrvZfvuUuBdOi2DMgnSQzkLvFVLyM8mhOcx+ZwU6IOOsuyOv/w==}
+  '@ai-sdk/gateway@1.0.21':
+    resolution: {integrity: sha512-yQPrMb1v0P8GwmmpcCT2DGPfgJVRkJ9QaRRJGO0+Em+wI+Xv3lvHHIc3ImVR3jjVfJPih/cNWWALUgRERfQaxQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -180,11 +180,11 @@ packages:
   '@composio/json-schema-to-zod@0.1.15':
     resolution: {integrity: sha512-GaeFd60EozDN4zHZUU4mLp+kqO11ZzUyMaljKbdBNHUsq+TYgomWvoZESyUcDqyvqHx+4+V4Smg91s8Rd7bB4Q==}
 
-  '@composio/openai-agents@0.1.51':
-    resolution: {integrity: sha512-mQwoG4tVYoX7NLCSBNqTOrK5VRKiywulfr0hwHrpgiC3mvE4Kdc7gMrQLyKsJYCDCq1wmKQ2ECIE9A2KHRzA4A==}
+  '@composio/openai-agents@0.1.52':
+    resolution: {integrity: sha512-EMvk3fx+uSgNp7hCBF/pV0TiLLVDS4I0LC/gG1UA2N5vhoa09+FHQ2wWKQPrEzRep/RnZInwYC913wDUZgy7mg==}
     peerDependencies:
       '@composio/core': 0.1.51
-      '@openai/agents': ^0.0.17
+      '@openai/agents': ^0.1.1
 
   '@convex-dev/workpool@0.2.18':
     resolution: {integrity: sha512-tfRfBCukaRiybxwy4/W3rLWpIRhPivFH9tC5++d0XE1sV627vw2mAwOM9SnpY1k+BWVoNrHrHrxBheklSbuAag==}
@@ -488,8 +488,8 @@ packages:
       react:
         optional: true
 
-  ai@5.0.39:
-    resolution: {integrity: sha512-1AOjTHY8MUY4T/X/I+otGTbvKmMQCCGWffuVDyQ21l/2Vv/QoLZcw+ZZHVvp+wvQcPOsfXjURGSFZtin7rnghA==}
+  ai@5.0.40:
+    resolution: {integrity: sha512-AEKVjVQjnzomEz39f1axnCLtmNRU/BrP12Ou6ztinGhv5u1VxrrRk5qbXugVI0ijeaVwxKQ/SWs0dicUC0qLEA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -1131,8 +1131,8 @@ packages:
     resolution: {integrity: sha512-ueGLflrrnvwB3xuo/uGob5pd5FN7l0MsLf0Z87o/UQmRtwjvfylfc9MurIxRAWywCYTgrvpXBcqjV4OfCYGCIQ==}
     engines: {node: '>=16.20.0'}
 
-  posthog-node@5.8.2:
-    resolution: {integrity: sha512-z3XRvYwnc3T/1999FKzv16YTpxERQqLunULl2vkOPfgbCXUGNyJWLgcbTcED2ZIDE11jjZhrSph4De6OSMLphw==}
+  posthog-node@5.8.3:
+    resolution: {integrity: sha512-eFBUEF8Dn/gZncGDNGlC5FqggwRgf/N4ERkzVZsvhvkjXlM6ncSHb7McJsj1hooWGkxrvn/gABfl2hpDurSb/g==}
     engines: {node: '>=20'}
 
   prettier@3.6.2:
@@ -1376,7 +1376,7 @@ snapshots:
       '@ai-sdk/provider-utils': 3.0.8(zod@3.25.76)
       zod: 3.25.76
 
-  '@ai-sdk/gateway@1.0.20(zod@3.25.76)':
+  '@ai-sdk/gateway@1.0.21(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.8(zod@3.25.76)
@@ -1510,7 +1510,7 @@ snapshots:
       '@types/json-schema': 7.0.15
       zod: 3.25.76
 
-  '@composio/openai-agents@0.1.51(@composio/core@0.1.51(ws@8.18.3))(@openai/agents@0.1.1(ws@8.18.3)(zod@3.25.76))':
+  '@composio/openai-agents@0.1.52(@composio/core@0.1.51(ws@8.18.3))(@openai/agents@0.1.1(ws@8.18.3)(zod@3.25.76))':
     dependencies:
       '@composio/core': 0.1.51(ws@8.18.3)
       '@openai/agents': 0.1.1(ws@8.18.3)(zod@3.25.76)
@@ -1716,23 +1716,23 @@ snapshots:
       - utf-8-validate
       - ws
 
-  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.39(zod@3.25.76))(zod@3.25.76)':
+  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.40(zod@3.25.76))(zod@3.25.76)':
     dependencies:
-      ai: 5.0.39(zod@3.25.76)
+      ai: 5.0.40(zod@3.25.76)
       zod: 3.25.76
 
   '@opentelemetry/api@1.9.0': {}
 
-  '@posthog/ai@6.3.2(@modelcontextprotocol/sdk@1.17.5)(@opentelemetry/api@1.9.0)(posthog-node@5.8.2)(ws@8.18.3)':
+  '@posthog/ai@6.3.2(@modelcontextprotocol/sdk@1.17.5)(@opentelemetry/api@1.9.0)(posthog-node@5.8.3)(ws@8.18.3)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@anthropic-ai/sdk': 0.36.3
       '@google/genai': 1.19.0(@modelcontextprotocol/sdk@1.17.5)
       '@langchain/core': 0.3.75(@opentelemetry/api@1.9.0)(openai@5.20.1(ws@8.18.3)(zod@3.25.76))
-      ai: 5.0.39(zod@3.25.76)
+      ai: 5.0.40(zod@3.25.76)
       langchain: 0.3.33(@langchain/core@0.3.75(@opentelemetry/api@1.9.0)(openai@5.20.1(ws@8.18.3)(zod@3.25.76)))(@opentelemetry/api@1.9.0)(openai@5.20.1(ws@8.18.3)(zod@3.25.76))(ws@8.18.3)
       openai: 5.20.1(ws@8.18.3)(zod@3.25.76)
-      posthog-node: 5.8.2
+      posthog-node: 5.8.3
       uuid: 11.1.0
       zod: 3.25.76
     transitivePeerDependencies:
@@ -1842,9 +1842,9 @@ snapshots:
     optionalDependencies:
       react: 19.1.1
 
-  ai@5.0.39(zod@3.25.76):
+  ai@5.0.40(zod@3.25.76):
     dependencies:
-      '@ai-sdk/gateway': 1.0.20(zod@3.25.76)
+      '@ai-sdk/gateway': 1.0.21(zod@3.25.76)
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.8(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
@@ -2420,7 +2420,7 @@ snapshots:
 
   pkce-challenge@5.0.0: {}
 
-  posthog-node@5.8.2:
+  posthog-node@5.8.3:
     dependencies:
       '@posthog/core': 1.0.2
 
