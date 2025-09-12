@@ -1,7 +1,7 @@
 # Bluerage Backend
 
 <p align="center">
-  <img src="docs/images/cover.png" alt="Bluerage - a Home for Agents" width="80%" height />
+  <img src="docs/images/сover.png" alt="Bluerage - A Home for Agents" />
 </p>
 
 Mobile first AI-powered automation that thinks and acts for you. Create
