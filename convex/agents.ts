@@ -4,8 +4,9 @@ import { getModelById, getDefaultModel } from "./models"
 import { getCustomModelById } from "./customModels";
 import { Doc, Id } from "./_generated/dataModel";
 import { getCurrentUserOrThrow } from "./users"
+import { env } from "./config"
 
-const defaultImagesIds = process.env.DEFAULT_IMAGE_IDS!.split(", ")
+const defaultImagesIds = env.DEFAULT_IMAGE_IDS.split(", ")
 
 export type Agent = Doc<"agents">;
 
@@ -44,7 +45,7 @@ export const create = mutation({
             }
 
             const randomImageId = defaultImagesIds[Math.floor(Math.random() * defaultImagesIds.length)];
-            const iconUrl = `${process.env.CONVEX_SITE_URL!}/getImage?storageId=${randomImageId}`;
+            const iconUrl = `${env.CONVEX_SITE_URL}/getImage?storageId=${randomImageId}`;
 
             const id = await ctx.db
                 .insert("agents", {
@@ -125,16 +126,19 @@ export const removeByIds = mutation({
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
 
-        for (const id of args.id) {
-            const agent = await getAgentById(ctx.db, user._id, id);
+        const agents = await Promise.all(
+            args.id.map(id => getAgentById(ctx.db, user._id, id))
+        );
 
-            if (agent !== null) {
-                return await ctx.db
-                    .delete(id)
-            } else {
-                throw new ConvexError("Agent not found");
-            }
+        const missingAgents = agents.some(agent => agent === null);
+        
+        if (missingAgents) {
+            throw new ConvexError("Agent not found");
         }
+
+        await Promise.all(
+            args.id.map(id => ctx.db.delete(id))
+        );
     }
 });
 

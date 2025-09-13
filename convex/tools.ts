@@ -5,16 +5,17 @@ import { internal } from "./_generated/api";
 import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
+import { env } from "./config";
 
 const SUPPORTED_TOOLKITS_WITH_AUTH_CONFIG_ID: Record<string, string> = {
-    'GMAIL': process.env.COMPOSIO_GMAIL_AUTH_CONFIG_ID!,
-    'GOOGLECALENDAR': process.env.COMPOSIO_GOOGLECALENDAR_AUTH_CONFIG_ID!,
-    'GITHUB': process.env.COMPOSIO_GITHUB_AUTH_CONFIG_ID!,
-    'NOTION': process.env.COMPOSIO_NOTION_AUTH_CONFIG_ID!,
-    'LINEAR': process.env.COMPOSIO_LINEAR_AUTH_CONFIG_ID!,
-    'YOUTUBE': process.env.COMPOSIO_YOUTUBE_AUTH_CONFIG_ID!,
-    'DISCORD': process.env.COMPOSIO_DISCORD_AUTH_CONFIG_ID!,
-    'GOOGLESHEETS': process.env.COMPOSIO_GOOGLESHEETS_AUTH_CONFIG_ID!
+    'GMAIL': env.COMPOSIO_GMAIL_AUTH_CONFIG_ID,
+    'GOOGLECALENDAR': env.COMPOSIO_GOOGLECALENDAR_AUTH_CONFIG_ID,
+    'GITHUB': env.COMPOSIO_GITHUB_AUTH_CONFIG_ID,
+    'NOTION': env.COMPOSIO_NOTION_AUTH_CONFIG_ID,
+    'LINEAR': env.COMPOSIO_LINEAR_AUTH_CONFIG_ID,
+    'YOUTUBE': env.COMPOSIO_YOUTUBE_AUTH_CONFIG_ID,
+    'DISCORD': env.COMPOSIO_DISCORD_AUTH_CONFIG_ID,
+    'GOOGLESHEETS': env.COMPOSIO_GOOGLESHEETS_AUTH_CONFIG_ID
 };
 
 export const getAll = action({

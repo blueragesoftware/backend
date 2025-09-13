@@ -1,6 +1,7 @@
 import CryptoJS from "crypto-js";
+import { env } from "./config";
 
-const ENCRYPTION_KEY = CryptoJS.SHA256(process.env.ENCRYPTION_KEY!).toString();
+const ENCRYPTION_KEY = CryptoJS.SHA256(env.ENCRYPTION_KEY).toString();
 
 export function encryptApiKey(text: string): string {
     if (text.length === 0) {
@@ -31,6 +32,7 @@ export function decryptApiKey(encryptedText: string): string {
         return plainText;
     } catch (error) {
         console.error("Decryption failed:", error);
+
         throw error;
     }
 }

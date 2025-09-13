@@ -8,7 +8,6 @@ import { Id } from "./_generated/dataModel"
 
 const agentsWorkpool = new Workpool(components.agentsWorkpool, {
     maxParallelism: 10,
-    retryActionsByDefault: false
 });
 
 export const getAllByAgentId = query({

@@ -17,10 +17,7 @@ export const get = query({
 
         return {
             models,
-            customModels: customModels.map(customModel => ({
-                ...customModel,
-                encryptedApiKey: decryptApiKey(customModel.encryptedApiKey)
-            }))
+            customModels
         };
     },
 });

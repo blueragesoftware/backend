@@ -3,8 +3,9 @@ import { v } from "convex/values";
 import { Doc, Id } from "./_generated/dataModel";
 import { DatabaseReader } from "./_generated/server";
 import { getCurrentUserOrThrow } from "./users";
+import { env } from "./config";
 
-const DEFAULT_MODEL_ID = process.env.DEFAULT_MODEL_ID as Id<"models">;
+const DEFAULT_MODEL_ID = env.DEFAULT_MODEL_ID as Id<"models">;
 
 type Model = Doc<"models">;
 

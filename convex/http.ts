@@ -4,6 +4,7 @@ import { internal } from "./_generated/api";
 import type { WebhookEvent } from "@clerk/backend";
 import { Webhook } from "svix";
 import { Id } from "./_generated/dataModel";
+import { env } from "./config";
 
 const http = httpRouter();
 
@@ -11,14 +12,14 @@ http.route({
     path: "/clerk-users-webhook",
     method: "POST",
     handler: httpAction(async (ctx, request) => {
-        const event = await validateRequest(request, process.env.CLERK_WEBHOOK_SECRET!);
+        const event = await validateRequest(request, env.CLERK_WEBHOOK_SECRET);
 
         if (!event) {
-            return new Response("Error occured", { status: 400 });
+            return new Response("Error occurred", { status: 400 });
         }
 
         switch (event.type) {
-            case "user.created": // intentional fallthrough
+            case "user.created":
             case "user.updated":
                 await ctx.runMutation(internal.users.upsertFromClerk, {
                     data: event.data,
@@ -42,13 +43,11 @@ http.route({
     path: "/composio-webhook",
     method: "POST",
     handler: httpAction(async (_ctx, request) => {
-        const event = await validateRequest(request, process.env.COMPOSIO_WEBHOOK_SECRET!);
+        const event = await validateRequest(request, env.COMPOSIO_WEBHOOK_SECRET);
 
         if (!event) {
-            return new Response("Error occured", { status: 400 });
+            return new Response("Error occurred", { status: 400 });
         }
-
-        console.log(`Composion webhook: ${request.body}`);
 
         return new Response(null, { status: 200 });
     }),
@@ -61,11 +60,13 @@ http.route({
         const { searchParams } = new URL(request.url);
         const storageId = searchParams.get("storageId")! as Id<"_storage">;
         const blob = await ctx.storage.get(storageId);
+
         if (blob === null) {
             return new Response("Image not found", {
                 status: 404,
             });
         }
+
         return new Response(blob);
     }),
 });

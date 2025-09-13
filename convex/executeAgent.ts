@@ -17,6 +17,7 @@ import { withTracing } from "@posthog/ai"
 import { LanguageModel } from "ai";
 import { createXai } from "@ai-sdk/xai"
 import { executionTask } from "./schema"
+import { env } from "./config"
 
 export const executeWithId = internalAction({
     args: {
@@ -27,6 +28,10 @@ export const executeWithId = internalAction({
         }),
     },
     handler: async (ctx, args) => {
+        const posthog = new PostHog(env.POSTHOG_API_KEY, {
+            host: env.POSTHOG_HOST
+        });
+        
         try {
             const task = args.task;
 
@@ -45,9 +50,6 @@ export const executeWithId = internalAction({
             } else {
                 const userAvailableRequestedTools = await getToolsBySlugsForUserWithId(task.agent.userId, requestedToolSlugs);
 
-                console.log("tools", tools)
-
-                // Verify all requested tools are available
                 const requestedSet = new Set<string>(requestedToolSlugs);
                 const availableSet = new Set<string>(userAvailableRequestedTools.map(tool => tool.slug));
 
@@ -124,10 +126,6 @@ export const executeWithId = internalAction({
                     throw new ConvexError("Invalid model provider");
             }
 
-            const posthog = new PostHog(process.env.POSTHOG_API_KEY!, {
-                host: process.env.POSTHOG_HOST!
-            });
-
             const modelWithTracing = withTracing(model, posthog, {
                 posthogDistinctId: task.agent.userId,
             });
@@ -159,6 +157,8 @@ export const executeWithId = internalAction({
                 id: args.task._id,
                 state: { type: "success", result: result.finalOutput ?? "No result" }
             });
+
+            await posthog.shutdown();
         } catch (error) {
             console.error("Error executing agent", error);
 
@@ -166,6 +166,8 @@ export const executeWithId = internalAction({
                 id: args.task._id,
                 state: { type: "error", error: (error as Error).message }
             });
+
+            await posthog.shutdown();
         }
     }
 });
