@@ -1,0 +1,80 @@
+diff --git a/dist/aiSdk.js b/dist/aiSdk.js
+index 3aa0987ca1e3195b7ed17b914fb0d939db98bb7d..e88fd64e3a81a1416ce73c69c7130578b3c7c043 100644
+--- a/dist/aiSdk.js
++++ b/dist/aiSdk.js
+@@ -385,13 +385,15 @@ class AiSdkModel {
+                 const toolCalls = resultContent.filter((c) => c && c.type === 'tool-call');
+                 const hasToolCalls = toolCalls.length > 0;
+                 for (const toolCall of toolCalls) {
++                    const args = toolCall.input === "" ? {} : toolCall.input ?? {};
++
+                     output.push({
+                         type: 'function_call',
+                         callId: toolCall.toolCallId,
+                         name: toolCall.toolName,
+-                        arguments: typeof toolCall.input === 'string'
+-                            ? toolCall.input
+-                            : JSON.stringify(toolCall.input ?? {}),
++                        arguments: typeof args === 'string'
++                            ? args
++                            : JSON.stringify(args ?? {}),
+                         status: 'completed',
+                         providerData: hasToolCalls ? result.providerMetadata : undefined,
+                     });
+@@ -561,11 +563,15 @@ class AiSdkModel {
+                     case 'tool-call': {
+                         const toolCallId = part.toolCallId;
+                         if (toolCallId) {
++                            const args = toolCall.input === "" ? {} : toolCall.input ?? {};
++
+                             functionCalls[toolCallId] = {
+                                 type: 'function_call',
+                                 callId: toolCallId,
+                                 name: part.toolName,
+-                                arguments: part.input ?? '',
++                                arguments: typeof args === 'string'
++                                    ? args
++                                    : JSON.stringify(args),
+                                 status: 'completed',
+                             };
+                         }
+diff --git a/dist/aiSdk.mjs b/dist/aiSdk.mjs
+index f8e7b9da644d37df174f61e9f8fd183f6b454187..16d4d4673c1d0578c8b5f67a086bbbeb24c225f2 100644
+--- a/dist/aiSdk.mjs
++++ b/dist/aiSdk.mjs
+@@ -376,13 +376,15 @@ export class AiSdkModel {
+                 const toolCalls = resultContent.filter((c) => c && c.type === 'tool-call');
+                 const hasToolCalls = toolCalls.length > 0;
+                 for (const toolCall of toolCalls) {
++                    const args = toolCall.input === "" ? {} : toolCall.input ?? {};
++
+                     output.push({
+                         type: 'function_call',
+                         callId: toolCall.toolCallId,
+                         name: toolCall.toolName,
+-                        arguments: typeof toolCall.input === 'string'
+-                            ? toolCall.input
+-                            : JSON.stringify(toolCall.input ?? {}),
++                        arguments: typeof args === 'string'
++                            ? args
++                            : JSON.stringify(args),
+                         status: 'completed',
+                         providerData: hasToolCalls ? result.providerMetadata : undefined,
+                     });
+@@ -552,11 +554,15 @@ export class AiSdkModel {
+                     case 'tool-call': {
+                         const toolCallId = part.toolCallId;
+                         if (toolCallId) {
++                            const args = toolCall.input === "" ? {} : toolCall.input ?? {};
++
+                             functionCalls[toolCallId] = {
+                                 type: 'function_call',
+                                 callId: toolCallId,
+                                 name: part.toolName,
+-                                arguments: part.input ?? '',
++                                arguments: typeof args === 'string'
++                                    ? args
++                                    : JSON.stringify(args),
+                                 status: 'completed',
+                             };
+                         }

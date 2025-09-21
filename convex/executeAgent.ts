@@ -1,7 +1,7 @@
 "use node";
 
 import { Agent, run } from "@openai/agents";
-import { Composio, ComposioLinkConnectionDataSchema } from '@composio/core';
+import { Composio } from '@composio/core';
 import { OpenAIAgentsProvider } from '@composio/openai-agents';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { aisdk } from '@openai/agents-extensions';
@@ -14,7 +14,6 @@ import { decryptApiKey } from "./encryption";
 import { getToolsBySlugsForUserWithId } from "./tools"
 import { PostHog } from "posthog-node";
 import { withTracing } from "@posthog/ai"
-import { LanguageModel } from "ai";
 import { createXai } from "@ai-sdk/xai"
 import { executionTask } from "./schema"
 import { env } from "./config"
@@ -31,7 +30,7 @@ export const executeWithId = internalAction({
         const posthog = new PostHog(env.POSTHOG_API_KEY, {
             host: env.POSTHOG_HOST
         });
-        
+
         try {
             const task = args.task;
 
@@ -86,14 +85,14 @@ export const executeWithId = internalAction({
                     throw new ConvexError("Invalid model type");
             }
 
-            let model: LanguageModel;
+            let model;
 
             switch (provider) {
                 case "openrouter":
                     const decryptedOpenRouterKey = encryptedApiKey ? decryptApiKey(encryptedApiKey) : null;
                     const openrouter = createOpenRouter(decryptedOpenRouterKey ? { apiKey: decryptedOpenRouterKey } : {});
 
-                    model = openrouter.chat(modelId);
+                    model = openrouter(modelId);
                     break;
                 case "openai":
                     const decryptedOpenAIKey = encryptedApiKey ? decryptApiKey(encryptedApiKey) : null;
@@ -102,25 +101,26 @@ export const executeWithId = internalAction({
                     if (decryptedOpenAIKey) {
                         openaiConfig.apiKey = decryptedOpenAIKey;
                     }
+
                     if (baseUrl) {
                         openaiConfig.baseURL = baseUrl;
                     }
 
                     const openai = createOpenAI(openaiConfig);
 
-                    model = openai.chat(modelId);
+                    model = openai(modelId);
                     break;
                 case "anthropic":
                     const decryptedAnthropicKey = encryptedApiKey ? decryptApiKey(encryptedApiKey) : null;
                     const anthropic = createAnthropic(decryptedAnthropicKey ? { apiKey: decryptedAnthropicKey } : {});
 
-                    model = anthropic.chat(modelId);
+                    model = anthropic(modelId);
                     break;
                 case "xai":
                     const decryptedXaiKey = encryptedApiKey ? decryptApiKey(encryptedApiKey) : null;
                     const xai = createXai(decryptedXaiKey ? { apiKey: decryptedXaiKey } : {});
 
-                    model = xai.chat(modelId);
+                    model = xai(modelId);
                     break;
                 default:
                     throw new ConvexError("Invalid model provider");
@@ -132,10 +132,12 @@ export const executeWithId = internalAction({
 
             const aiSdkModel = aisdk(modelWithTracing);
 
-            const goal = task.agent.goal;
+            const trimmedGoal = task.agent.goal.trim();
+
+            const goal = trimmedGoal === "" ? "Execite steps provided by user" : trimmedGoal;
 
             const agent = new Agent({
-                instructions: `You are an ai agent that executes user defined steps in a given order using tools provided alongside.\nYour goal is: ${goal}.\nCurrent date is: ${new Date().toLocaleDateString()}.`,
+                instructions: `You are an ai agent that executes user defined steps in a given order using tools provided alongside.\nYour goal is: ${goal}.\nCurrent date is: ${new Date().toLocaleDateString()}. Respond in user language.`,
                 name: "StepsFollowingAgent",
                 tools: tools,
                 model: aiSdkModel
@@ -171,5 +173,3 @@ export const executeWithId = internalAction({
         }
     }
 });
-
-

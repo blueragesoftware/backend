@@ -1,0 +1,2 @@
+patchedDependencies:
+  '@openai/agents-extensions@0.1.2': patches/@openai__agents-extensions@0.1.2.patch
