@@ -58,9 +58,18 @@ export const executeWithId = internalAction({
                     throw new ConvexError(`Tools missing authentication: ${missingTools.join(', ')}`);
                 }
 
-                tools = await composio.tools.get(task.agent.userId, {
-                    toolkits: requestedToolSlugs
-                });
+                const toolkitResponses = await Promise.all(
+                    requestedToolSlugs.map(async (slug) =>
+                        composio.tools.get(task.agent.userId, {
+                            toolkits: [slug],
+                            limit: 20
+                        })
+                    )
+                );
+
+                const aggregatedTools = toolkitResponses.flatMap((toolkitTools) => toolkitTools ?? []);
+
+                tools = aggregatedTools.length > 0 ? aggregatedTools : undefined;
             }
 
             let modelId: string;
@@ -137,7 +146,7 @@ export const executeWithId = internalAction({
             const goal = trimmedGoal === "" ? "Execite steps provided by user" : trimmedGoal;
 
             const agent = new Agent({
-                instructions: `You are an ai agent that executes user defined steps in a given order using tools provided alongside.\nYour goal is: ${goal}.\nCurrent date is: ${new Date().toLocaleDateString()}. Respond in user language.`,
+                instructions: `You are an AI Agent made by Bluerage Software that executes user defined steps in a given order using tools provided alongside.\nYour goal is: ${goal}.\nCurrent date is: ${new Date().toLocaleDateString()}. Respond in user language.`,
                 name: "StepsFollowingAgent",
                 tools: tools,
                 model: aiSdkModel
