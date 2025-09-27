@@ -13,6 +13,7 @@ This guide covers how to setup the Bluerage backend service for local developmen
 - `CONVEX_URL`: Your Convex deployment URL (automatically generated when you create a deployment)
 
 **How to obtain**:
+
 1. Create a new project at [Convex Dashboard](https://dashboard.convex.dev/)
 2. Copy your deployment ID and URL to the environment variables
 
@@ -22,6 +23,7 @@ This guide covers how to setup the Bluerage backend service for local developmen
 - `CLERK_WEBHOOK_SECRET`: Secret for validating Clerk webhooks (generated in Clerk dashboard under Webhooks)
 
 **How to obtain**:
+
 1. Follow the [Convex + Clerk tutorial](https://docs.convex.dev/auth/clerk)
 2. Set up your JWT issuer domain and webhook secret
 
@@ -32,6 +34,7 @@ This guide covers how to setup the Bluerage backend service for local developmen
 - `DEFAULT_IMAGE_IDS`: Comma-separated list of storage IDs for default agent icons
 
 **How to obtain**:
+
 1. Seed your database with models and note the default model ID
 2. Generate a secure random string for encryption
 3. Upload default images to Convex storage and note the storage IDs
@@ -42,6 +45,7 @@ This guide covers how to setup the Bluerage backend service for local developmen
 - `XAI_API_KEY`: API key for xAI/Grok models
 
 **How to obtain**:
+
 1. Sign up at [OpenRouter](https://openrouter.ai/) for access to multiple AI models
 2. Sign up at [x.ai](https://x.ai/) for Grok models
 
@@ -51,6 +55,7 @@ This guide covers how to setup the Bluerage backend service for local developmen
 - `COMPOSIO_WEBHOOK_SECRET`: Secret for validating Composio webhooks
 
 **How to obtain**:
+
 1. Sign up at [Composio](https://composio.dev/)
 2. Get your API key and webhook secret from the dashboard
 
@@ -66,6 +71,7 @@ This guide covers how to setup the Bluerage backend service for local developmen
 - `COMPOSIO_GOOGLESHEETS_AUTH_CONFIG_ID`: Google Sheets integration auth config
 
 **How to obtain**:
+
 1. Set up each integration in your Composio dashboard
 2. Copy the auth config IDs for each tool you want to integrate
 
@@ -75,6 +81,7 @@ This guide covers how to setup the Bluerage backend service for local developmen
 - `POSTHOG_HOST`: PostHog instance URL (usually `https://app.posthog.com` or `https://us.i.posthog.com`)
 
 **How to obtain**:
+
 1. Sign up at [PostHog](https://posthog.com/)
 2. Create a new project and copy your API key to `POSTHOG_API_KEY`
 3. Set the appropriate host URL for your region in `POSTHOG_HOST`
@@ -101,6 +108,6 @@ pnpm install
 npx convex dev
 ```
 
-### 3. You're ready to go!
+### 3. You're ready to go
 
 Your Convex backend will be running and ready to serve requests from the iOS app.

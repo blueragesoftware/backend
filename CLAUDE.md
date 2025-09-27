@@ -80,7 +80,7 @@ Required environment variables in `.env.local`:
    - Send request to external worker service
    - Return structured response or throw descriptive errors
 
-   # Convex guidelines
+# Convex guidelines
 
 ## Function guidelines
 
