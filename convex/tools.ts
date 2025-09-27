@@ -15,7 +15,8 @@ const SUPPORTED_TOOLKITS_WITH_AUTH_CONFIG_ID: Record<string, string> = {
     'LINEAR': env.COMPOSIO_LINEAR_AUTH_CONFIG_ID,
     'YOUTUBE': env.COMPOSIO_YOUTUBE_AUTH_CONFIG_ID,
     'DISCORD': env.COMPOSIO_DISCORD_AUTH_CONFIG_ID,
-    'GOOGLESHEETS': env.COMPOSIO_GOOGLESHEETS_AUTH_CONFIG_ID
+    'GOOGLESHEETS': env.COMPOSIO_GOOGLESHEETS_AUTH_CONFIG_ID,
+    'TELEGRAM': env.COMPOSIO_TELEGRAM_AUTH_CONFIG_ID
 };
 
 export const getAll = action({
@@ -77,7 +78,7 @@ export const connectWithAuthConfigId = action({
 
         const composio = new Composio();
 
-        const connectionRequest = await composio.connectedAccounts.initiate(
+        const connectionRequest = await composio.connectedAccounts.link(
             user._id,
             args.authConfigId
         );

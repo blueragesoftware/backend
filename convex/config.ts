@@ -30,6 +30,7 @@ const envSchema = z.object({
     COMPOSIO_YOUTUBE_AUTH_CONFIG_ID: z.string().min(1),
     COMPOSIO_DISCORD_AUTH_CONFIG_ID: z.string().min(1),
     COMPOSIO_GOOGLESHEETS_AUTH_CONFIG_ID: z.string().min(1),
+    COMPOSIO_TELEGRAM_AUTH_CONFIG_ID: z.string().min(1),
     
     // PostHog
     POSTHOG_API_KEY: z.string().min(1),
