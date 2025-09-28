@@ -16,6 +16,12 @@ export const customModel = v.object({
     baseUrl: v.optional(v.string())
 });
 
+export const file = v.object({
+    storageId: v.id("_storage"),
+    name: v.string(),
+    type: v.union(v.literal("image"), v.literal("file"))
+});
+
 export const agent = v.object({
     name: v.string(),
     description: v.string(),
@@ -39,6 +45,7 @@ export const agent = v.object({
             type: v.literal("customModel")
         })
     ),
+    files: v.array(file),
     userId: v.id("users"),
 });
 

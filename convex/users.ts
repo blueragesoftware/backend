@@ -1,6 +1,7 @@
 import { internalMutation, internalQuery, QueryCtx } from "./_generated/server";
 import { UserJSON } from "@clerk/backend";
 import { ConvexError, v, Validator } from "convex/values";
+import { api } from "./_generated/api";
 
 export const upsertFromClerk = internalMutation({
     args: {
@@ -40,9 +41,9 @@ export const deleteFromClerk = internalMutation({
             .withIndex("by_userId", (q) => q.eq("userId", user._id))
             .collect();
         
-        for (const agent of agents) {
-            await ctx.db.delete(agent._id);
-        }
+        await ctx.runMutation(api.agents.removeByIds, {
+            ids: agents.map((agent) => agent._id)
+        });
 
         const executionTasks = await ctx.db
             .query("executionTasks")

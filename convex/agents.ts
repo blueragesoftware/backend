@@ -5,6 +5,7 @@ import { getCustomModelById } from "./customModels";
 import { Doc, Id } from "./_generated/dataModel";
 import { getCurrentUserOrThrow } from "./users"
 import { env } from "./config"
+import { file } from "./schema";
 
 const defaultImagesIds = env.DEFAULT_IMAGE_IDS.split(", ")
 
@@ -44,8 +45,12 @@ export const create = mutation({
                 throw new ConvexError(`Default model not found`);
             }
 
-            const randomImageId = defaultImagesIds[Math.floor(Math.random() * defaultImagesIds.length)];
-            const iconUrl = `${env.CONVEX_SITE_URL}/getImage?storageId=${randomImageId}`;
+            const randomImageId = defaultImagesIds[Math.floor(Math.random() * defaultImagesIds.length)] as Id<"_storage">;
+            const iconUrl = await ctx.storage.getUrl(randomImageId);
+
+            if (iconUrl === null) {
+                throw new ConvexError("Icon url could not be obtained");
+            }
 
             const id = await ctx.db
                 .insert("agents", {
@@ -59,6 +64,7 @@ export const create = mutation({
                         type: "model",
                         id: defaultModel._id
                     },
+                    files: [],
                     userId: user._id
                 });
 
@@ -94,7 +100,8 @@ export const update = mutation({
                 type: v.literal("customModel"),
                 id: v.id("customModels")
             })
-        ))
+        )),
+        files: v.optional(v.array(file))
     },
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
@@ -114,6 +121,17 @@ export const update = mutation({
         if (args.tools !== undefined) updates.tools = args.tools;
         if (args.steps !== undefined) updates.steps = args.steps;
         if (args.model !== undefined) updates.model = args.model;
+        if (args.files !== undefined) {
+            const nextFiles = args.files;
+            const nextFileIds = new Set(nextFiles.map((file) => file.storageId));
+            const removedFiles = existing.files.filter((file) => !nextFileIds.has(file.storageId));
+
+            if (removedFiles.length > 0) {
+                await Promise.all(removedFiles.map((file) => ctx.storage.delete(file.storageId)));
+            }
+
+            updates.files = nextFiles;
+        }
 
         return await ctx.db.patch(args.id, updates);
     }
@@ -121,23 +139,29 @@ export const update = mutation({
 
 export const removeByIds = mutation({
     args: {
-        id: v.array(v.id("agents"))
+        ids: v.array(v.id("agents"))
     },
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
 
         const agents = await Promise.all(
-            args.id.map(id => getAgentById(ctx.db, user._id, id))
+            args.ids.map(id => getAgentById(ctx.db, user._id, id))
         );
 
         const missingAgents = agents.some(agent => agent === null);
-        
+
         if (missingAgents) {
             throw new ConvexError("Agent not found");
         }
 
         await Promise.all(
-            args.id.map(id => ctx.db.delete(id))
+            agents.flatMap((agent) =>
+                agent?.files.map((file) => ctx.storage.delete(file.storageId)) ?? []
+            )
+        );
+
+        await Promise.all(
+            args.ids.map(id => ctx.db.delete(id))
         );
     }
 });

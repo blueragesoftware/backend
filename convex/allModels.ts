@@ -1,6 +1,5 @@
 import { query } from "./_generated/server";
 import { getCurrentUserOrThrow } from "./users";
-import { decryptApiKey } from "./encryption";
 
 export const get = query({
     handler: async (ctx) => {

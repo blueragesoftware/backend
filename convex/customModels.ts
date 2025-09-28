@@ -2,7 +2,7 @@ import { DatabaseReader, mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { getCurrentUserOrThrow } from "./users";
 import { Doc, Id } from "./_generated/dataModel";
-import { encryptApiKey, decryptApiKey } from "./encryption";
+import { encryptApiKey } from "./encryption";
 
 export type CustomModel = Doc<"customModels">;
 
@@ -61,13 +61,13 @@ export const update = mutation({
 
 export const removeByIds = mutation({
     args: {
-        id: v.array(v.id("customModels"))
+        ids: v.array(v.id("customModels"))
     },
     handler: async (ctx, args) => {
         const user = await getCurrentUserOrThrow(ctx);
 
         const customModels = await Promise.all(
-            args.id.map(id => getCustomModelById(ctx.db, user._id, id))
+            args.ids.map(id => getCustomModelById(ctx.db, user._id, id))
         );
 
         const missingModels = customModels.some(model => model === null);
@@ -77,7 +77,7 @@ export const removeByIds = mutation({
         }
 
         await Promise.all(
-            args.id.map(id => ctx.db.delete(id))
+            args.ids.map(id => ctx.db.delete(id))
         );
     }
 });

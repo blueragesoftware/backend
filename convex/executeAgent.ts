@@ -1,9 +1,10 @@
 "use node";
 
 import { Agent, run } from "@openai/agents";
+import type { AgentInputItem } from "@openai/agents";
 import { Composio } from '@composio/core';
 import { OpenAIAgentsProvider } from '@composio/openai-agents';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { createOpenRouter } from '@openrouter/fix_file_annotation'
 import { aisdk } from '@openai/agents-extensions';
 import { createOpenAI, OpenAIProviderSettings } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
@@ -153,16 +154,69 @@ export const executeWithId = internalAction({
             });
 
             const formattedSteps = task.agent.steps.map((step, index) => `${index + 1}. ${step.value}`).join('\n');
+            const baseInstruction = `Execute these steps: \n${formattedSteps}`;
+
+            let runInput: string | AgentInputItem[] = baseInstruction;
+
+            if (task.agent.files.length > 0) {
+                const fileInputs = await Promise.all(
+                    task.agent.files.map(async (agentFile) => {
+                        const fileUrl = await ctx.storage.getUrl(agentFile.storageId);
+
+                        if (fileUrl === null) {
+                            throw new ConvexError(`File not found for storageId ${agentFile.storageId}`);
+                        }
+
+                        const providerData = agentFile.name ? { filename: agentFile.name } : undefined;
+
+                        switch (agentFile.type) {
+                            case "image":
+                                return {
+                                    type: "input_image",
+                                    image: fileUrl,
+                                    ...(providerData ? { providerData } : {}),
+                                };
+                            case "file":
+                                return {
+                                    type: "input_file",
+                                    file: fileUrl,
+                                    ...(providerData ? { providerData } : {}),
+                                };
+                        }
+                    })
+                );
+
+                const userMessage: AgentInputItem = {
+                    role: "user",
+                    type: "message",
+                    content: [
+                        {
+                            type: "input_text",
+                            text: baseInstruction,
+                        },
+                        ...fileInputs,
+                    ],
+                    providerData: {
+                        plugins: [
+                            {
+                                id: 'file-parser',
+                                pdf: {
+                                    engine: 'pdf-text'
+                                }
+                            }
+                        ]
+                    }
+                };
+
+                runInput = [userMessage];
+            }
 
             await ctx.runMutation(internal.executionTasks.updateTask, {
                 id: args.task._id,
                 state: { type: "running" }
             });
 
-            const result = await run(
-                agent,
-                `Execute these steps: \n${formattedSteps}`
-            );
+            const result = await run(agent, runInput);
 
             await ctx.runMutation(internal.executionTasks.updateTask, {
                 id: args.task._id,
