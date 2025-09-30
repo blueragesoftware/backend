@@ -1,9 +1,6 @@
 import { z } from 'zod';
 
-const envSchema = z.object({
-    // Convex
-    CONVEX_SITE_URL: z.url().optional(),
-    
+const envSchema = z.object({    
     // Clerk
     CLERK_JWT_ISSUER_DOMAIN: z.string().min(1),
     CLERK_WEBHOOK_SECRET: z.string().min(1),
@@ -16,6 +13,10 @@ const envSchema = z.object({
     // AI Providers
     OPENROUTER_API_KEY: z.string().min(1).optional(),
     XAI_API_KEY: z.string().min(1).optional(),
+
+    // Resend
+    RESEND_API_KEY: z.string().min(1),
+    RESEND_AUDIENCE_ID: z.string().min(1),
     
     // Composio
     COMPOSIO_API_KEY: z.string().min(1),

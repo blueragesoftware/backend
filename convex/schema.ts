@@ -22,6 +22,13 @@ export const file = v.object({
     type: v.union(v.literal("image"), v.literal("file"))
 });
 
+export const user = v.object({
+    externalId: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    email: v.optional(v.string()),
+});
+
 export const agent = v.object({
     name: v.string(),
     description: v.string(),
@@ -88,10 +95,7 @@ export default defineSchema({
         .index("by_userId", ["agent.userId"]),
     models: defineTable(model)
         .index("by_name", ["name"]),
-    users: defineTable({
-        name: v.string(),
-        externalId: v.string(),
-    })
+    users: defineTable(user)
         .index("byExternalId", ["externalId"]),
     customModels: defineTable(customModel)
         .index("by_userId", ["userId"])

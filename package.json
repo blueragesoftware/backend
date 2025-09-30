@@ -41,6 +41,7 @@
     "convex-helpers": "^0.1.104",
     "crypto-js": "^4.2.0",
     "posthog-node": "^5.9.1",
+    "resend": "^6.1.1",
     "svix": "^1.76.1",
     "zod": "^4.1.11"
   }

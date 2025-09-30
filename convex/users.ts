@@ -1,24 +1,26 @@
 import { internalMutation, internalQuery, QueryCtx } from "./_generated/server";
-import { UserJSON } from "@clerk/backend";
-import { ConvexError, v, Validator } from "convex/values";
+import type { DatabaseReader } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
 import { api } from "./_generated/api";
+import { user as userSchema } from "./schema";
+
+export const getAll = internalQuery({
+    async handler(ctx) {
+        return await ctx.db
+            .query("users")
+            .collect()
+    },
+});
 
 export const upsertFromClerk = internalMutation({
-    args: {
-        data: v.any() as Validator<UserJSON>
-    },
-    async handler(ctx, { data }) {
-        const userAttributes = {
-            name: `${data.first_name} ${data.last_name}`,
-            externalId: data.id,
-        };
+    args: userSchema,
+    async handler(ctx, args) {
+        const existing = await userByExternalId(ctx.db, args.externalId);
 
-        const user = await userByExternalId(ctx, data.id);
-
-        if (user === null) {
-            await ctx.db.insert("users", userAttributes);
+        if (existing === null) {
+            await ctx.db.insert("users", args);
         } else {
-            await ctx.db.patch(user._id, userAttributes);
+            await ctx.db.patch(existing._id, args);
         }
     },
 });
@@ -28,7 +30,7 @@ export const deleteFromClerk = internalMutation({
         clerkUserId: v.string()
     },
     async handler(ctx, { clerkUserId }) {
-        const user = await userByExternalId(ctx, clerkUserId);
+        const user = await userByExternalId(ctx.db, clerkUserId);
 
         if (user == null) {
             console.warn(`Can't delete user, there is none for Clerk user ID: ${clerkUserId}`);
@@ -40,7 +42,7 @@ export const deleteFromClerk = internalMutation({
             .query("agents")
             .withIndex("by_userId", (q) => q.eq("userId", user._id))
             .collect();
-        
+
         await ctx.runMutation(api.agents.removeByIds, {
             ids: agents.map((agent) => agent._id)
         });
@@ -49,7 +51,7 @@ export const deleteFromClerk = internalMutation({
             .query("executionTasks")
             .withIndex("by_userId", (q) => q.eq("agent.userId", user._id))
             .collect();
-        
+
         for (const task of executionTasks) {
             await ctx.db.delete(task._id);
         }
@@ -58,12 +60,21 @@ export const deleteFromClerk = internalMutation({
             .query("customModels")
             .withIndex("by_userId", (q) => q.eq("userId", user._id))
             .collect();
-        
+
         for (const model of customModels) {
             await ctx.db.delete(model._id);
         }
 
         await ctx.db.delete(user._id);
+    },
+});
+
+export const getByExternalId = internalQuery({
+    args: {
+        externalId: v.string(),
+    },
+    handler: async (ctx, { externalId }) => {
+        return await userByExternalId(ctx.db, externalId);
     },
 });
 
@@ -90,11 +101,11 @@ export async function getCurrentUser(ctx: QueryCtx) {
         return null;
     }
 
-    return await userByExternalId(ctx, identity.subject);
+    return await userByExternalId(ctx.db, identity.subject);
 }
 
-async function userByExternalId(ctx: QueryCtx, externalId: string) {
-    return await ctx.db
+async function userByExternalId(db: DatabaseReader, externalId: string) {
+    return await db
         .query("users")
         .withIndex("byExternalId", (q) => q.eq("externalId", externalId))
         .unique();
