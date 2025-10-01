@@ -3,7 +3,7 @@
 import { internalAction } from "../_generated/server";
 import { Resend } from "resend";
 import { user } from "../schema";
-import { env } from "../config";
+import { env } from "../env";
 import { v } from "convex/values";
 
 const resendClient = new Resend(env.RESEND_API_KEY);

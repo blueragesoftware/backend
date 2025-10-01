@@ -30,6 +30,7 @@
     "@composio/openai-agents": "^0.1.54",
     "@convex-dev/migrations": "^0.2.9",
     "@convex-dev/workpool": "^0.2.18",
+    "@knocklabs/node": "^1.18.0",
     "@openai/agents": "^0.1.6",
     "@openai/agents-extensions": "^0.1.5",
     "@openrouter/fix_file_annotation": "https://github.com/Leward/ai-sdk-provider.git#fix_mistral_file_annotation",

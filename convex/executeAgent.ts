@@ -17,7 +17,9 @@ import { PostHog } from "posthog-node";
 import { withTracing } from "@posthog/ai"
 import { createXai } from "@ai-sdk/xai"
 import { executionTask } from "./schema"
-import { env } from "./config"
+import { env } from "./env"
+import { getById } from "./users"
+import Knock from "@knocklabs/node";
 
 export const executeWithId = internalAction({
     args: {
@@ -31,6 +33,16 @@ export const executeWithId = internalAction({
         const posthog = new PostHog(env.POSTHOG_API_KEY, {
             host: env.POSTHOG_HOST
         });
+
+        const user = await ctx.runQuery(internal.users.getById, {
+            id: args.task.agent.userId
+        });
+
+        if (user === null) {
+            throw new ConvexError("User not found");
+        }
+
+        const knock = new Knock({ apiKey: env.KNOCK_API_KEY });
 
         try {
             const task = args.task;
@@ -223,6 +235,19 @@ export const executeWithId = internalAction({
                 state: { type: "success", result: result.finalOutput ?? "No result" }
             });
 
+            await knock.workflows.trigger("agent-status-update", {
+                recipients: [user.externalId],
+                data: {
+                    agent: {
+                        name: args.task.agent.name,
+                        status: {
+                            emoji: "✅",
+                            title: "Finished"
+                        }
+                    }
+                }
+            });
+
             await posthog.shutdown();
         } catch (error) {
             console.error("Error executing agent", error);
@@ -230,6 +255,19 @@ export const executeWithId = internalAction({
             await ctx.runMutation(internal.executionTasks.updateTask, {
                 id: args.task._id,
                 state: { type: "error", error: (error as Error).message }
+            });
+
+            await knock.workflows.trigger("agent-status-update", {
+                recipients: [user.externalId],
+                data: {
+                    agent: {
+                        name: args.task.agent.name,
+                        status: {
+                            emoji: "❌",
+                            title: "Failed"
+                        }
+                    }
+                }
             });
 
             await posthog.shutdown();

@@ -2,7 +2,7 @@ import { Migrations } from "@convex-dev/migrations";
 import { components } from "./_generated/api.js";
 import { DataModel, Id } from "./_generated/dataModel.js";
 import { internal } from "./_generated/api.js";
-import { env } from "./config.js";
+import { env } from "./env.js";
 
 export const migrations = new Migrations<DataModel>(components.migrations);
 export const run = migrations.runner();

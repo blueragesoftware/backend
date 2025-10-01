@@ -36,6 +36,9 @@ const envSchema = z.object({
     // PostHog
     POSTHOG_API_KEY: z.string().min(1),
     POSTHOG_HOST: z.url(),
+
+    // Knock
+    KNOCK_API_KEY: z.string().min(1),
 });
 
 function validateEnv() {

@@ -5,7 +5,7 @@ import { internal } from "./_generated/api";
 import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
-import { env } from "./config";
+import { env } from "./env";
 
 const SUPPORTED_TOOLKITS_WITH_AUTH_CONFIG_ID: Record<string, string> = {
     'GMAIL': env.COMPOSIO_GMAIL_AUTH_CONFIG_ID,

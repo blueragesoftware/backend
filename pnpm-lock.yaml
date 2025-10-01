@@ -37,6 +37,9 @@ importers:
       '@convex-dev/workpool':
         specifier: ^0.2.18
         version: 0.2.18(convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.27.3(react@19.1.1))(react@19.1.1)(typescript@5.9.2)(zod@4.1.11))(convex@1.27.3(react@19.1.1))
+      '@knocklabs/node':
+        specifier: ^1.18.0
+        version: 1.18.0
       '@openai/agents':
         specifier: ^0.1.6
         version: 0.1.7(ws@8.18.3)(zod@4.1.11)
@@ -378,6 +381,9 @@ packages:
     peerDependenciesMeta:
       '@modelcontextprotocol/sdk':
         optional: true
+
+  '@knocklabs/node@1.18.0':
+    resolution: {integrity: sha512-ZWhaYqFiNgClkrY6aZMYU8fzunG1du11Cloj6Sg6I3GCEhwoJ26QZuznur7Liz+SHuwMhbXFsKZM+grDAbDmPA==}
 
   '@langchain/core@0.3.78':
     resolution: {integrity: sha512-Nn0x9erQlK3zgtRU1Z8NUjLuyW0gzdclMsvLQ6wwLeDqV91pE+YKl6uQb+L2NUDs4F0N7c2Zncgz46HxrvPzuA==}
@@ -844,6 +850,9 @@ packages:
 
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
+
+  jose@6.1.0:
+    resolution: {integrity: sha512-TTQJyoEoKcC1lscpVDCSsVgYzUDg/0Bt3WE//WiTPK6uOCQC2KZS4MpugbMWt/zyjkopgZoXhZuCi00gLudfUA==}
 
   js-base64@3.7.8:
     resolution: {integrity: sha512-hNngCeKxIUQiEUN3GPJOkz4wF/YvdUdbNL9hsBcMQTkKzboD7T/q3OYOuuPZLUE6dBxSGpwhk5mwuDud7JVAow==}
@@ -1600,6 +1609,10 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@knocklabs/node@1.18.0':
+    dependencies:
+      jose: 6.1.0
+
   '@langchain/core@0.3.78(@opentelemetry/api@1.9.0)(openai@5.23.2(ws@8.18.3)(zod@4.1.11))':
     dependencies:
       '@cfworker/json-schema': 4.1.1
@@ -2183,6 +2196,8 @@ snapshots:
   is-stream@2.0.1: {}
 
   isexe@2.0.0: {}
+
+  jose@6.1.0: {}
 
   js-base64@3.7.8: {}
 

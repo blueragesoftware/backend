@@ -4,7 +4,7 @@ import { getModelById, getDefaultModel } from "./models"
 import { getCustomModelById } from "./customModels";
 import { Doc, Id } from "./_generated/dataModel";
 import { getCurrentUserOrThrow } from "./users"
-import { env } from "./config"
+import { env } from "./env"
 import { file } from "./schema";
 
 const defaultImagesIds = env.DEFAULT_IMAGE_IDS.split(", ")

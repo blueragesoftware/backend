@@ -1,5 +1,5 @@
 import CryptoJS from "crypto-js";
-import { env } from "./config";
+import { env } from "./env";
 
 const ENCRYPTION_KEY = CryptoJS.SHA256(env.ENCRYPTION_KEY).toString();
 

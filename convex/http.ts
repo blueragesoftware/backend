@@ -4,7 +4,7 @@ import { internal } from "./_generated/api";
 import type { DeletedObjectJSON, UserJSON, WebhookEvent } from "@clerk/backend";
 import { Webhook } from "svix";
 import { Resend } from "resend";
-import { env } from "./config";
+import { env } from "./env";
 import { Infer } from "convex/values";
 import { user as userSchema } from "./schema";
 

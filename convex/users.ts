@@ -4,11 +4,12 @@ import { ConvexError, v } from "convex/values";
 import { api } from "./_generated/api";
 import { user as userSchema } from "./schema";
 
-export const getAll = internalQuery({
-    async handler(ctx) {
-        return await ctx.db
-            .query("users")
-            .collect()
+export const getById = internalQuery({
+    args: {
+        id: v.id("users")
+    },
+    async handler(ctx, args) {
+        return await ctx.db.get(args.id);
     },
 });
 
